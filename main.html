@@ -1,518 +1,232 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ร้านขายช่อดอกไม้ออนไลน์ | Fresh Flower Shop</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            pink: '#e83e8c',
-                            pinkDark: '#d62d7a',
-                            pinkLight: '#fdf2f8',
-                            grayText: '#4b5563',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Prompt', 'Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Font Prompt (เหมาะกับภาษาไทย) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #ffffff;
-            color: #333333;
-        }
-        /* ซ่อน scrollbar ในบางจุดเพื่อให้ดูสะอาด */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <!-- กำหนดให้แสดงผลพอดีกับหน้าจอทุกขนาด (Responsive) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMTEM+</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  
+  <style>
+    /* ===================================================
+       1. สไตล์พื้นฐานและการจัดระยะ (Global Styles)
+       =================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Bai Jamjuree', sans-serif;
+    }
+    body {
+      color: #333;
+      background-color: #fff;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    /* ===================================================
+       2. ส่วนหัวของเว็บ (Header / Navbar)
+       =================================================== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid #f8d7da; /* เส้นขอบล่างสีชมพูอ่อน */
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #8a4b0f; /* สีชมพูหลัก */
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 14px;
+    }
+    /* ปุ่มเปิด-ปิดเมนู (Hamburger) */
+    .menu-toggle-btn {
+      background: none;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* ===================================================
+       3. เมนูหมวดหมู่สินค้า (Category Navigation Menu)
+       =================================================== */
+    #categoryMenu {
+      display: none; /* ซ่อนไว้ก่อน จะเปิดเมื่อกดปุ่ม */
+      border-bottom: 1px solid #eee;
+    }
+    #categoryMenu.active {
+      display: block; /* แสดงผลเมื่อมีคลาส active */
+    }
+    .menu-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 10px;
+      border-bottom: 1px solid #f5f5f5;
+      text-decoration: none;
+      color: #555;
+    }
+    .menu-item:hover {
+      background-color: #fff5f8;
+      color: #8a4b0f;
+    }
+
+    /* ===================================================
+       4. ชื่อหน้าและแถบกรองสินค้า (Filter Bar)
+       =================================================== */
+    .page-title {
+      color: #8a4b0f;
+      font-size: 24px;
+      margin: 20px 0 15px;
+    }
+    .filters-bar {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .filter-item select {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    /* ===================================================
+       5. รายการสินค้า (Product Grid)
+       =================================================== */
+    .product-grid {
+      display: grid;
+      /* แสดง 3 คอลัมน์บนจอคอม และจะย่อลงมาอัตโนมัติเมื่อจอแคบลง */
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding-bottom: 50px;
+    }
+    .product-card {
+      text-align: center;
+    }
+    .product-card img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover; /* จัดภาพให้เต็มกรอบโดยไม่เสียสัดส่วน */
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+    .product-code {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
+    }
+    .product-price {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 4px;
+    }
+  </style>
 </head>
-<body class="bg-white text-gray-800 antialiased selection:bg-pink-100 selection:text-pink-600">
-
-    <!-- Top Announcement Bar (แถบข้อความโปรโมชันด้านบนสุด) -->
-    <div class="bg-stone-900 text-stone-200 text-xs sm:text-sm py-1.5 px-4 text-center font-light tracking-wide">
-        ช่อดอกไม้สด รูปแบบพิเศษ ส่งมอบความรู้สึกในโอกาสต่างๆ บริการจัดส่งด่วนทั่วกรุงเทพฯ และปริมณฑล
-    </div>
-
-    <!-- Main Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white border-b border-pink-100 shadow-sm transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 sm:h-20">
-                
-                <!-- โลโก้ และเบอร์โทรศัพท์ -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                    <div class="flex flex-col">
-                        <div class="flex items-center space-x-1.5">
-                            <span class="text-2xl sm:text-3xl">🌸</span>
-                            <span class="text-2xl sm:text-3xl font-bold tracking-tight text-brand-pink italic" style="font-family: 'Brush Script MT', cursive, sans-serif;">
-                                Miss Rose
-                            </span>
-                        </div>
-                        <span class="text-xs text-brand-pink font-semibold tracking-wider -mt-1 pl-7">
-                            02-970-8000
-                        </span>
-                    </div>
-                </div>
-
-                <!-- ฝั่งขวา: ภาษา / ล็อกอิน / ตะกร้าสินค้า / ปุ่มเมนูมือถือ -->
-                <div class="flex items-center space-x-4 sm:space-x-6 text-sm text-gray-600 font-medium">
-                    <!-- ภาษา TH | EN -->
-                    <div class="hidden sm:flex items-center space-x-1 text-xs sm:text-sm">
-                        <button class="text-brand-pink font-semibold hover:underline">TH</button>
-                        <span>|</span>
-                        <button class="hover:text-brand-pink">EN</button>
-                    </div>
-
-                    <!-- ปุ่ม ล็อกอิน/สมัครสมาชิก -->
-                    <button class="flex items-center space-x-1 text-xs sm:text-sm hover:text-brand-pink transition-colors">
-                        <svg class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="hidden md:inline">ล็อกอิน/สมัครสมาชิก</span>
-                    </button>
-
-                    <!-- ตะกร้าสินค้า (พร้อมป้ายแจ้งเตือนจำนวน) -->
-                    <div class="relative cursor-pointer hover:text-brand-pink transition-colors" onclick="toggleCartModal()">
-                        <svg class="w-6 h-6 text-gray-800 hover:text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-brand-pink text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow">
-                            0
-                        </span>
-                    </div>
-
-                    <!-- ปุ่มเปิด/ปิด แถบเมนู Hamburger / กากบาท -->
-                    <button id="menu-toggle-btn" onclick="toggleCategoryMenu()" class="p-1.5 rounded-lg hover:bg-pink-50 text-gray-700 focus:outline-none transition-colors" aria-label="เมนู">
-                        <!-- ไอคอนขีด 3 เส้น (Hamburger) -->
-                        <svg id="icon-burger" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                        <!-- ไอคอนกากบาท X (ซ่อนไว้เริ่มต้น) -->
-                        <svg id="icon-close" class="w-6 h-6 hidden text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dropdown Menu เมื่อกดปุ่ม Hamburger (เหมือนรูปที่ 1) -->
-        <div id="category-drawer" class="hidden border-t border-pink-100 bg-white shadow-lg transition-all duration-300">
-            <div class="max-w-4xl mx-auto py-2 px-4 sm:px-6">
-                <ul class="divide-y divide-pink-100 text-sm font-medium text-gray-700">
-                    <li class="py-3 flex justify-between items-center cursor-pointer hover:text-brand-pink transition-colors">
-                        <span>ดอกไม้สด</span>
-                        <span class="text-gray-400 font-normal text-lg">+</span>
-                    </li>
-                    <li class="py-3 flex justify-between items-center cursor-pointer hover:text-brand-pink transition-colors">
-                        <span>พวงหรีด</span>
-                        <span class="text-gray-400 font-normal text-lg">+</span>
-                    </li>
-                    <li class="py-3 flex justify-between items-center cursor-pointer hover:text-brand-pink transition-colors">
-                        <span>ดอกไม้ประดิษฐ์</span>
-                        <span class="text-gray-400 font-normal text-lg">+</span>
-                    </li>
-                    <li class="py-3 flex justify-between items-center cursor-pointer hover:text-brand-pink transition-colors">
-                        <span>กระเช้าของขวัญ</span>
-                        <span class="text-gray-400 font-normal text-lg">+</span>
-                    </li>
-                    <li class="py-3 flex justify-between items-center cursor-pointer hover:text-brand-pink transition-colors">
-                        <span>สินค้าอื่น</span>
-                        <span class="text-gray-400 font-normal text-lg">+</span>
-                    </li>
-                    <li class="py-3 cursor-pointer hover:text-brand-pink transition-colors">
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                            <span>ค้นหา</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
+<body>
+  <div class="container">
+    <!-- ส่วนหัว (Header) -->
+    <header>
+      <div class="logo">🌸TERMTEM+</div>
+      <div class="header-right">
+        <span>👤 ล็อกอิน/สมัครสมาชิก</span>
+        <span>🛒 0</span>
+        <!-- ปุ่มสลับแสดง/ซ่อนเมนูหมวดหมู่ -->
+        <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
+      </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- รายการหมวดหมู่สินค้า (เปิด-ปิดได้) -->
+    <nav id="categoryMenu">
+      <a href="#" class="menu-item"><span>ดอกไม้สด</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>พวงหรีด</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>ดอกไม้ประดิษฐ์</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>กระเช้าของขวัญ</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>ค้นหา</span> <span>🔍</span></a>
+    </nav>
 
-        <!-- Title Section -->
-        <div class="border-b-2 border-brand-pink pb-3 mb-6">
-            <h1 class="text-2xl sm:text-3xl font-bold text-brand-pink">
-                ช่อดอกไม้
-            </h1>
-        </div>
+    <!-- หัวข้อและตัวกรอง -->
+    <h1 class="page-title">ช่อดอกไม้</h1>
+    <div class="filters-bar">
+      <div class="filter-item">
+        <label>ราคา:</label>
+        <select>
+          <option>ทั้งหมด</option>
+          <option>ต่ำกว่า 1,000</option>
+          <option>1,000 - 2,500</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>จัดเรียง:</label>
+        <select>
+          <option>ยอดนิยม</option>
+          <option>ราคา: ต่ำไปสูง</option>
+          <option>ราคา: สูงไปต่ำ</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>โอกาส:</label>
+        <select>
+          <option>ทั้งหมด</option>
+          <option>วันเกิด</option>
+          <option>รับปริญญา</option>
+          <option>แสดงความยินดี</option>
+        </select>
+      </div>
+    </div>
 
-        <!-- Filter & Sorting Bar (เลียนแบบตัวเลือกในรูปภาพ) -->
-        <section class="bg-gray-50/70 p-4 rounded-xl border border-gray-100 mb-8">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                
-                <!-- เลือกช่วงราคา -->
-                <div class="flex items-center space-x-2">
-                    <label for="price-filter" class="text-sm font-medium text-gray-700 whitespace-nowrap min-w-[50px]">ราคา</label>
-                    <select id="price-filter" onchange="filterProducts()" class="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-pink focus:border-brand-pink outline-none shadow-sm cursor-pointer">
-                        <option value="all">ทั้งหมด</option>
-                        <option value="under1500">ต่ำกว่า ฿1,500</option>
-                        <option value="1500-2500">฿1,500 - ฿2,500</option>
-                        <option value="above2500">มากกว่า ฿2,500</option>
-                    </select>
-                </div>
+    <!-- ตารางแสดงสินค้า -->
+    <main class="product-grid">
+      <!-- ชิ้นที่ 1 -->
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=500" alt="ช่อดอกไม้ BC-26_01">
+        <div class="product-code">BC-26_01</div>
+        <div class="product-price">฿ 1,590</div>
+      </div>
 
-                <!-- จัดเรียงลำดับ -->
-                <div class="flex items-center space-x-2">
-                    <label for="sort-filter" class="text-sm font-medium text-gray-700 whitespace-nowrap min-w-[50px]">จัดเรียง</label>
-                    <select id="sort-filter" onchange="filterProducts()" class="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-pink focus:border-brand-pink outline-none shadow-sm cursor-pointer">
-                        <option value="default">ค่าเริ่มต้น (แนะนำ)</option>
-                        <option value="price-asc">ราคา: น้อยไปมาก</option>
-                        <option value="price-desc">ราคา: มากไปน้อย</option>
-                        <option value="name">ชื่อรหัสสินค้า</option>
-                    </select>
-                </div>
+      <!-- ชิ้นที่ 2 -->
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=500" alt="ช่อดอกไม้ BC-26_02">
+        <div class="product-code">BC-26_02</div>
+        <div class="product-price">฿1,890</div>
+      </div>
 
-                <!-- โอกาส / เทศกาล -->
-                <div class="flex items-center space-x-2">
-                    <label for="occasion-filter" class="text-sm font-medium text-gray-700 whitespace-nowrap min-w-[50px]">โอกาส</label>
-                    <select id="occasion-filter" onchange="filterProducts()" class="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-pink focus:border-brand-pink outline-none shadow-sm cursor-pointer">
-                        <option value="all">ทุกโอกาส</option>
-                        <option value="birthday">วันเกิด / สังสรรค์</option>
-                        <option value="anniversary">วันครบรอบ / ความรัก</option>
-                        <option value="congrats">แสดงความยินดี / รับปริญญา</option>
-                    </select>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Product Grid Section (3 Columns on Desktop, 1-2 on mobile) -->
-        <div id="product-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-            <!-- สินค้าจะถูก Render อัตโนมัติด้วย JavaScript ด้านล่าง -->
-        </div>
-
-        <!-- Empty State (ถ้าค้นหาหรือกรองไม่เจอ) -->
-        <div id="no-products-msg" class="hidden text-center py-16">
-            <p class="text-4xl mb-2">🌸</p>
-            <p class="text-gray-500 font-medium">ไม่พบช่อดอกไม้ที่ตรงกับเงื่อนไขการค้นหา</p>
-        </div>
+      <!-- ชิ้นที่ 3 -->
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=500" alt="ช่อดอกไม้ BL-26_08">
+        <div class="product-code">BL-26_08</div>
+        <div class="product-price">฿2,200</div>
+      </div>
     </main>
+  </div>
 
-    <!-- Modal ตะกร้าสินค้าอย่างง่าย (Simple Shopping Cart Slide-in / Popup) -->
-    <div id="cart-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex justify-end">
-        <div class="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
-            <div>
-                <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <span>🛒</span> รายการในตะกร้าของคุณ
-                    </h3>
-                    <button onclick="toggleCartModal()" class="text-gray-400 hover:text-gray-700 p-1">
-                        ✕
-                    </button>
-                </div>
-                
-                <div id="cart-items-list" class="divide-y divide-gray-100 my-4 space-y-2">
-                    <p class="text-sm text-gray-400 text-center py-8">ไม่มีสินค้าในตะกร้า</p>
-                </div>
-            </div>
+  <!-- JavaScript สำหรับการทำงานเบื้องต้น -->
+  <script>
+    // ฟังก์ชันเปิด/ปิดเมนูหมวดหมู่
+    function toggleMenu() {
+      const menu = document.getElementById('categoryMenu');
+      menu.classList.toggle('active');
+    }
+  </script>
 
-            <div class="pt-4 border-t border-gray-200">
-                <div class="flex justify-between items-center mb-4 text-base font-semibold">
-                    <span>ยอดรวมสุทธิ:</span>
-                    <span id="cart-total-price" class="text-brand-pink font-bold text-lg">฿ 0</span>
-                </div>
-                <button onclick="checkout()" class="w-full bg-brand-pink hover:bg-brand-pinkDark text-white py-3 rounded-lg font-medium shadow-md transition-all">
-                    ไปที่ขั้นตอนชำระเงิน
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification (แจ้งเตือนเพิ่มลงตะกร้า) -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-stone-900 text-white px-4 py-2.5 rounded-lg shadow-xl text-sm flex items-center space-x-2 opacity-0 pointer-events-none transition-all duration-300 z-50">
-        <span>✅</span>
-        <span id="toast-message">เพิ่มสินค้าลงตะกร้าเรียบร้อยแล้ว</span>
-    </div>
-
-    <!-- JavaScript Application Logic -->
-    <script>
-        // ข้อมูลตัวอย่างของช่อดอกไม้ จำลองรูปทรงและสไตล์ตามภาพที่คุณแนบมา
-        const productsData = [
-            {
-                id: 1,
-                code: 'BC-26_02',
-                name: 'Sweet Pastel Melody with Bear',
-                price: 1890,
-                occasion: 'birthday',
-                image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=700&q=80',
-                badge: 'ยอดนิยม'
-            },
-            {
-                id: 2,
-                code: 'BC-26_01',
-                name: 'White Lilies & Fresh Foliage',
-                price: 2450,
-                occasion: 'congrats',
-                image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=700&q=80',
-                badge: 'ขายดี'
-            },
-            {
-                id: 3,
-                code: 'BL-26_08',
-                name: 'Blue Hydrangea Luxe Bouquet',
-                price: 2850,
-                occasion: 'anniversary',
-                image: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=700&q=80',
-                badge: 'ใหม่'
-            },
-            {
-                id: 4,
-                code: 'BC-26_05',
-                name: 'Pastel Dream Romance',
-                price: 1650,
-                occasion: 'anniversary',
-                image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=700&q=80',
-                badge: ''
-            },
-            {
-                id: 5,
-                code: 'BL-26_11',
-                name: 'Classic White Rose Wrap',
-                price: 2100,
-                occasion: 'congrats',
-                image: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=700&q=80',
-                badge: ''
-            },
-            {
-                id: 6,
-                code: 'BC-26_09',
-                name: 'Soft Yellow Buttercup Vase',
-                price: 1400,
-                occasion: 'birthday',
-                image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=700&q=80',
-                badge: ''
-            }
-        ];
-
-        let cart = [];
-
-        // แสดงผลการ์ดสินค้าลงใน Grid
-        function renderProducts(items) {
-            const container = document.getElementById('product-container');
-            const noMsg = document.getElementById('no-products-msg');
-
-            container.innerHTML = '';
-
-            if (items.length === 0) {
-                noMsg.classList.remove('hidden');
-                return;
-            } else {
-                noMsg.classList.add('hidden');
-            }
-
-            items.forEach(product => {
-                const card = document.createElement('div');
-                card.className = "group flex flex-col bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300";
-
-                card.innerHTML = `
-                    <!-- ส่วนรูปภาพสินค้า -->
-                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
-                        <img 
-                            src="${product.image}" 
-                            alt="${product.code}" 
-                            loading="lazy"
-                            class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                            onerror="this.src='https://placehold.co/600x750/fdf2f8/d62d7a?text=Flower+Bouquet'"
-                        />
-                        ${product.badge ? `<span class="absolute top-3 left-3 bg-brand-pink text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-sm">${product.badge}</span>` : ''}
-                        
-                        <!-- Watermark Miss Lily โทนจางๆ มุมขวาบนตามแบบ -->
-                        <div class="absolute top-2 right-2 text-[10px] text-stone-500 font-serif tracking-widest bg-white/70 px-1.5 py-0.5 rounded opacity-80 backdrop-blur-xs">
-                            M/L
-                        </div>
-
-                        <!-- ปุ่มเพิ่มในตะกร้าแบบ Hover บน Desktop -->
-                        <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
-                            <button onclick="addToCart(${product.id})" class="bg-white text-gray-800 text-xs font-semibold py-2 px-4 rounded-full hover:bg-brand-pink hover:text-white transition-colors shadow">
-                                + เพิ่มลงตะกร้า
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- ส่วนข้อมูลข้อความและราคา (ตามดีไซน์ในภาพ: รหัสสินค้าอยู่ด้านบน และราคาด้านล่าง) -->
-                    <div class="p-4 text-center flex flex-col items-center flex-grow justify-between">
-                        <div>
-                            <h3 class="font-medium text-gray-800 tracking-wide text-sm sm:text-base group-hover:text-brand-pink transition-colors">
-                                ${product.code}
-                            </h3>
-                            <p class="text-xs text-gray-400 mt-0.5">${product.name}</p>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <span class="text-sm sm:text-base font-semibold text-gray-800">
-                                ฿ ${product.price.toLocaleString()}
-                            </span>
-                        </div>
-
-                        <!-- ปุ่มกดสำหรับจอมือถือ (เพราะมือถือไม่มี mouse hover) -->
-                        <button onclick="addToCart(${product.id})" class="sm:hidden mt-3 w-full text-xs border border-pink-200 text-brand-pink hover:bg-pink-50 py-1.5 rounded-md transition-colors">
-                            เพิ่มลงตะกร้า
-                        </button>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // ฟังก์ชันกรองและจัดเรียงสินค้า
-        function filterProducts() {
-            const priceFilter = document.getElementById('price-filter').value;
-            const sortFilter = document.getElementById('sort-filter').value;
-            const occasionFilter = document.getElementById('occasion-filter').value;
-
-            let result = [...productsData];
-
-            // 1. กรองราคา
-            if (priceFilter === 'under1500') {
-                result = result.filter(p => p.price < 1500);
-            } else if (priceFilter === '1500-2500') {
-                result = result.filter(p => p.price >= 1500 && p.price <= 2500);
-            } else if (priceFilter === 'above2500') {
-                result = result.filter(p => p.price > 2500);
-            }
-
-            // 2. กรองโอกาส
-            if (occasionFilter !== 'all') {
-                result = result.filter(p => p.occasion === occasionFilter);
-            }
-
-            // 3. จัดเรียง
-            if (sortFilter === 'price-asc') {
-                result.sort((a, b) => a.price - b.price);
-            } else if (sortFilter === 'price-desc') {
-                result.sort((a, b) => b.price - a.price);
-            } else if (sortFilter === 'name') {
-                result.sort((a, b) => a.code.localeCompare(b.code));
-            }
-
-            renderProducts(result);
-        }
-
-        // ฟังก์ชัน Toggle เมนูหมวดหมู่ (Accordion Drawer)
-        function toggleCategoryMenu() {
-            const drawer = document.getElementById('category-drawer');
-            const burger = document.getElementById('icon-burger');
-            const close = document.getElementById('icon-close');
-
-            const isHidden = drawer.classList.contains('hidden');
-            if (isHidden) {
-                drawer.classList.remove('hidden');
-                burger.classList.add('hidden');
-                close.classList.remove('hidden');
-            } else {
-                drawer.classList.add('hidden');
-                burger.classList.remove('hidden');
-                close.classList.add('hidden');
-            }
-        }
-
-        // ฟังก์ชันจัดการตะกร้าสินค้า
-        function addToCart(productId) {
-            const product = productsData.find(p => p.id === productId);
-            if (!product) return;
-
-            const existing = cart.find(item => item.id === productId);
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                cart.push({ ...product, quantity: 1 });
-            }
-
-            updateCartUI();
-            showToast(`เพิ่ม ${product.code} ลงในตะกร้าแล้ว`);
-        }
-
-        function removeFromCart(productId) {
-            cart = cart.filter(item => item.id !== productId);
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const badge = document.getElementById('cart-count-badge');
-            const list = document.getElementById('cart-items-list');
-            const totalText = document.getElementById('cart-total-price');
-
-            // คำนวณจำนวนชิ้นทั้งหมด
-            const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
-            badge.innerText = totalQty;
-
-            // คำนวณราคารวม
-            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            totalText.innerText = `฿ ${totalPrice.toLocaleString()}`;
-
-            // อัปเดตรายการสินค้าใน Popup
-            if (cart.length === 0) {
-                list.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">ไม่มีสินค้าในตะกร้า</p>`;
-            } else {
-                list.innerHTML = cart.map(item => `
-                    <div class="flex items-center justify-between py-2 text-sm">
-                        <div class="flex items-center space-x-3">
-                            <img src="${item.image}" class="w-12 h-12 object-cover rounded" alt="${item.code}">
-                            <div>
-                                <p class="font-semibold text-gray-800">${item.code}</p>
-                                <p class="text-xs text-gray-500">฿${item.price.toLocaleString()} x ${item.quantity}</p>
-                            </div>
-                        </div>
-                        <button onclick="removeFromCart(${item.id})" class="text-xs text-red-500 hover:text-red-700">
-                            ลบ
-                        </button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function toggleCartModal() {
-            const modal = document.getElementById('cart-modal');
-            modal.classList.toggle('hidden');
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-message');
-            msgEl.innerText = msg;
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
-        }
-
-        function checkout() {
-            if (cart.length === 0) {
-                showToast("ไม่มีสินค้าในตะกร้า");
-                return;
-            }
-            showToast("ดำเนินการสั่งซื้อสำเร็จ! กำลังไปที่การชำระเงิน...");
-            setTimeout(() => {
-                toggleCartModal();
-            }, 1000);
-        }
-
-        // เริ่มต้น Render ข้อมูลเมื่อโหลดหน้าเว็บ
-        window.onload = function() {
-            renderProducts(productsData);
-        };
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
 </html>
