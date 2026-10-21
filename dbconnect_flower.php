@@ -5,8 +5,11 @@
     $password = ""; // กำหนดรหัสผ่านฐานข้อมูลเป็นค่าว่าง
     $database = "termtem_store"; // กำหนดชื่อฐานข้อมูลเป็น userDB
     $conn = mysqli_connect($host, $user, $password, $database); // สร้างการเชื่อมต่อกับฐานข้อมูล MySQL
+    
     // ตรวจสอบว่าการเชื่อมต่อสำเร็จหรือไม่
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error()); // . mysqli_connect_error() ใช้ดึงข้อความข้อผิดพลาดจาก MySQL
     }
+
+    mysqli_set_charset($conn, "utf8mb4");
 ?>
