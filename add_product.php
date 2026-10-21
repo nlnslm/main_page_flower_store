@@ -17,7 +17,7 @@ $occasion = !empty($data['product_occasion']) ? trim($data['product_occasion']) 
 $description = !empty($data['product_description']) ? trim($data['product_description']) : '';
 
 // Insert ลงในตาราง product โดยระบุชื่อคอลัมน์ตรงตามตารางจริง
-$stmt = mysqli_prepare($conn, "INSERT INTO product (product_name, product_price, product_image, product_occasion, product_description) VALUES (?, ?, ?, ?, ?)");
+$stmt = mysqli_prepare($conn, "INSERT INTO products (product_name, product_price, product_image, product_occasion, product_description) VALUES (?, ?, ?, ?, ?)");
 mysqli_stmt_bind_param($stmt, "sdsss", $name, $price, $image, $occasion, $description);
 
 if (mysqli_stmt_execute($stmt)) {

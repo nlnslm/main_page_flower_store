@@ -2,7 +2,7 @@
 include_once 'dbconnect_flower.php';
 
 // ดึงข้อมูลสินค้าโดยใช้ชื่อคอลัมน์ตามตารางจริง
-$sql = "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM product ORDER BY product_id DESC";
+$sql = "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM products ORDER BY product_id DESC";
 $result = mysqli_query($conn,$sql);
 
 $db_products = [];
