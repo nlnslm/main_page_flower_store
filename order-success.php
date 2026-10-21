@@ -60,7 +60,7 @@
         <section class="panel receipt-panel" id="missing-order" hidden>
             <h1>ยังไม่มีรายการสั่งซื้อ</h1>
             <p class="receipt-lead">กรุณาเลือกดอกไม้และกรอกข้อมูลในหน้าสั่งซื้อก่อน</p>
-            <a class="submit receipt-link" href="order.html">ไปหน้าสั่งซื้อ →</a>
+            <a class="submit receipt-link" href="order.php">ไปหน้าสั่งซื้อ →</a>
         </section>
     </main>
     <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
