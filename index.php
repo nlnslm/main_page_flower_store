@@ -1,21 +1,34 @@
 <?php
-require_once 'db.php';
+include_once 'dbconnect_flower.php';
 
-// ดึงข้อมูลสินค้าทั้งหมดจากฐานข้อมูล เรียงจากรายการล่าสุด
-$sql = "SELECT * FROM products ORDER BY id DESC";
+// ดึงข้อมูลสินค้าโดยใช้ชื่อคอลัมน์ตามตารางจริง
+$sql = "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM product ORDER BY product_id DESC";
 $result = mysqli_query($conn,$sql);
+
+$db_products = [];
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {$db_products[] = [
+            'id' => (int)$row['product_id'],
+            'name' => $row['product_name'],
+            'price' => (float)$row['product_price'],
+            'occasions' => array_filter(array_map('trim', explode(',', $row['product_occasion'] ?? ''))),
+            'img' => $row['product_image'],
+            'description' => $row['product_description']
+        ];
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TERMTEM+ | ร้านขายช่อดอกไม้</title>
-  
+  <title>TERMTEM+</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+  
   <style>
     * {
       box-sizing: border-box;
@@ -24,16 +37,16 @@ $result = mysqli_query($conn,$sql);
       font-family: 'Bai Jamjuree', sans-serif;
     }
     body {
-      background-color: #fffdf8;
       color: #333;
-      padding: 15px;
+      background-color: #fffdf8;
     }
     .container {
       max-width: 900px;
       margin: 0 auto;
+      padding: 0 15px;
     }
 
-    /* ส่วนหัว */
+    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -46,56 +59,103 @@ $result = mysqli_query($conn,$sql);
       font-weight: bold;
       color: #8a4b0f;
     }
-    .menu-btn {
-      border: 1px solid #8a4b0f;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 17px;
+    }
+    .menu-toggle-btn {
       background: none;
-      padding: 6px 12px;
+      border: 1px solid #8a4b0f;
+      padding: 5px 10px;
       cursor: pointer;
-      color: #8a4b0f;
-      font-size: 15px;
+      font-size: 16px;
       border-radius: 4px;
+      color: #8a4b0f;
     }
 
     /* เมนูหมวดหมู่ */
     #categoryMenu {
       display: none;
       border-bottom: 1px solid #8a4b0f;
-      margin-bottom: 15px;
+      background-color: #fffdf8;
+    }
+    #categoryMenu.active {
+      display: block;
     }
     .menu-item {
       display: flex;
       justify-content: space-between;
       padding: 12px 10px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #f0e6d6;
+      text-decoration: none;
+      color: #555;
       cursor: pointer;
+      font-size: 15px;
     }
     .menu-item:hover {
       background-color: #fff5c8;
       color: #8a4b0f;
     }
-
-    /* แถบตัวกรองและค้นหา */
-    .title {
+    .menu-item.highlight-btn {
+      font-weight: 600;
       color: #8a4b0f;
-      margin: 20px 0 15px;
+      background-color: #fef7e0;
     }
-    .filter-section {
-      margin-bottom: 25px;
+
+    /* กล่องค้นหา */
+    .search-box-container {
+      display: none;
+      padding: 12px 10px;
+      background: #fdf5e6;
+      border-bottom: 1px solid #8a4b0f;
+      gap: 8px;
+    }
+    .search-box-container.active {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
     }
-    .filter-section input, .filter-section select {
+    .search-input {
+      flex: 1;
       padding: 8px 12px;
       border: 1px solid #8a4b0f;
       border-radius: 4px;
-      font-family: inherit;
-      background-color: #fff;
+      font-size: 14px;
+      background: #fff;
     }
-    .search-input {
-      width: 100%;
-      max-width: 280px;
+    .search-clear-btn {
+      padding: 6px 12px;
+      border: 1px solid #8a4b0f;
+      background: #fff;
+      color: #8a4b0f;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* ตัวกรอง */
+    .page-title {
+      color: #8a4b0f;
+      font-size: 24px;
+      margin: 20px 0 15px;
+    }
+    .filters-bar {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .filter-item select {
+      padding: 6px 12px;
+      border: 1px solid #8a4b0f;
+      border-radius: 4px;
+      background: #fffdf8;
+      font-family: inherit;
     }
 
     /* การ์ดสินค้า */
@@ -105,7 +165,6 @@ $result = mysqli_query($conn,$sql);
       gap: 20px;
       padding-bottom: 50px;
     }
-    /* เมื่อคลิกกรอบสินค้า จะทำเป็นลิงก์ไปยัง product.php */
     .product-link {
       text-decoration: none;
       color: inherit;
@@ -113,37 +172,45 @@ $result = mysqli_query($conn,$sql);
     }
     .product-card {
       text-align: center;
-      background: #fff;
-      padding: 12px;
-      border: 1px solid #ebd9c8;
-      border-radius: 6px;
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
+      background: #fff;
+      border: 1px solid #f0e6d6;
+      border-radius: 6px;
+      padding: 10px;
     }
     .product-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 15px rgba(138, 75, 15, 0.12);
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(138, 75, 15, 0.12);
     }
     .product-card img {
       width: 100%;
-      height: 300px;
+      height: 320px;
       object-fit: cover;
       border-radius: 4px;
       background-color: #fff5c8;
     }
     .product-name {
-      font-weight: 600;
+      font-size: 15px;
+      color: #555;
       margin-top: 10px;
-      font-size: 16px;
+      font-weight: 500;
     }
     .product-price {
-      color: #8a4b0f;
+      font-size: 16px;
       font-weight: bold;
-      margin-top: 5px;
+      color: #8a4b0f;
+      margin-top: 4px;
+    }
+    .no-products {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 0;
+      color: #888;
       font-size: 16px;
     }
 
-    /* Modal ป็อปอัปแจ้งเตือนและฟอร์ม */
+    /* Modals */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -158,58 +225,85 @@ $result = mysqli_query($conn,$sql);
     .modal-overlay.active {
       display: flex;
     }
-    .modal-box {
+    .modal-content {
       background: #fffdf8;
       border: 2px solid #8a4b0f;
       border-radius: 8px;
-      max-width: 420px;
+      max-width: 450px;
       width: 100%;
-      padding: 22px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-    .modal-box h2 {
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-header h2 {
+      font-size: 20px;
       color: #8a4b0f;
-      margin-bottom: 15px;
-      font-size: 18px;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #888;
     }
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .form-group label {
       display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #555;
     }
-    .form-group input, .form-group textarea, .form-group select {
+    .form-group input, 
+    .form-group select,
+    .form-group textarea {
       width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #8a4b0f;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
       border-radius: 4px;
       font-family: inherit;
+      font-size: 14px;
     }
-    .btn-action {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #8a4b0f;
+      outline: none;
+    }
+    .checkbox-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+    .btn-submit {
       width: 100%;
       padding: 10px;
       background-color: #8a4b0f;
       color: #fff;
       border: none;
       border-radius: 4px;
-      cursor: pointer;
+      font-size: 16px;
       font-weight: 600;
-      font-size: 15px;
-      margin-top: 5px;
-    }
-    .btn-action:hover {
-      background-color: #6d3a0a;
-    }
-    .modal-close-btn {
-      background: none;
-      border: none;
-      float: right;
-      font-size: 18px;
       cursor: pointer;
-      color: #888;
+      margin-top: 10px;
+    }
+    .btn-submit:hover {
+      background-color: #6d3a0a;
     }
     .popup-img-preview {
       width: 100%;
@@ -221,210 +315,276 @@ $result = mysqli_query($conn,$sql);
   </style>
 </head>
 <body>
-
   <div class="container">
-    <!-- Header -->
     <header>
-      <div class="logo">🌸 TERMTEM+</div>
-      <button class="menu-btn" onclick="toggleMenu()">☰ เมนู</button>
+      <div class="logo">🌸TERMTEM+</div>
+      <div class="header-right">
+        <span>👤 ล็อกอิน/สมัครสมาชิก</span>
+        <span>🛒 0</span>
+        <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
+      </div>
     </header>
 
-    <!-- เมนูหมวดหมู่ -->
     <nav id="categoryMenu">
-      <div class="menu-item"><span>ดอกไม้สด</span> <span>+</span></div>
-      <div class="menu-item"><span>พวงหรีด</span> <span>+</span></div>
-      <!-- ปุ่มเปิดฟอร์มเพิ่มสินค้าใหม่ -->
-      <div class="menu-item" style="color: #8a4b0f; font-weight: bold;" onclick="openAddModal()">
-        <span>+ เพิ่มสินค้าใหม่ลงระบบ (MySQL)</span> <span>➕</span>
+      <a href="#" class="menu-item"><span>ดอกไม้สด</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>พวงหรีด</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>ดอกไม้ประดิษฐ์</span> <span>+</span></a>
+      <a href="#" class="menu-item"><span>กระเช้าของขวัญ</span> <span>+</span></a>
+      
+      <div class="menu-item highlight-btn" onclick="toggleSearchBox()">
+        <span>ค้นหาสินค้า</span> <span>🔍</span>
+      </div>
+
+      <div class="menu-item highlight-btn" onclick="openAddModal()">
+        <span>เพิ่มสินค้าใหม่ (บันทึกลง Database)</span> <span>➕</span>
       </div>
     </nav>
 
-    <h1 class="title">ช่อดอกไม้</h1>
-
-    <!-- ตัวกรองและค้นหา -->
-    <div class="filter-section">
-      <input type="text" id="searchInput" class="search-input" placeholder="พิมพ์ค้นหาชื่อสินค้า..." oninput="filterProducts()">
-
-      <select id="priceFilter" onchange="filterProducts()">
-        <option value="all">ราคาทั้งหมด</option>
-        <option value="low">ต่ำกว่า 2,000</option>
-        <option value="high">2,000 ขึ้นไป</option>
-      </select>
-
-      <select id="occasionFilter" onchange="filterProducts()">
-        <option value="all">ทุกโอกาส</option>
-        <option value="birthday">วันเกิด</option>
-        <option value="congrats">แสดงความยินดี</option>
-      </select>
+    <div id="searchBoxContainer" class="search-box-container">
+      <input type="text" id="searchInput" class="search-input" placeholder="พิมพ์ชื่อดอกไม้ที่ต้องการค้นหา..." oninput="applyFilters()">
+      <button class="search-clear-btn" onclick="clearSearch()">ล้างการค้นหา</button>
     </div>
 
-    <!-- แสดงรายการสินค้าที่ดึงมาจาก MySQL -->
-    <main class="product-grid" id="productList">
-      <?php if ($result && mysqli_num_rows($result) > 0): ?>
-        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-          <!-- เมื่อคลิกกรอบการ์ด จะส่ง id ไปยัง product.php -->
-          <a href="product.php?id=<?= $row['id'] ?>" class="product-link">
-            <div class="product-card" data-price="<?= $row['price'] ?>" data-occasion="<?= htmlspecialchars($row['occasion']) ?>">
-              <img src="<?= htmlspecialchars($row['image_url']) ?>" alt="<?= htmlspecialchars($row['name']) ?>">
-              <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
-              <div class="product-price">฿<?= number_format($row['price']) ?></div>
-            </div>
-          </a>
-        <?php endwhile; ?>
-      <?php else: ?>
-        <p style="grid-column: 1/-1; text-align: center; color: #888;">ยังไม่มีรายการสินค้าในระบบ</p>
-      <?php endif; ?>
-    </main>
+    <h1 class="page-title">ช่อดอกไม้</h1>
+    <div class="filters-bar">
+      <div class="filter-item">
+        <label for="priceFilter">ราคา:</label>
+        <select id="priceFilter" onchange="applyFilters()">
+          <option value="all">ทั้งหมด</option>
+          <option value="under1500">ต่ำกว่า 1,500</option>
+          <option value="1500-2500">1,500 - 2,500</option>
+          <option value="above2500">มากกว่า 2,500</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="sortFilter">จัดเรียง:</label>
+        <select id="sortFilter" onchange="applyFilters()">
+          <option value="latest">สินค้าล่าสุด</option>
+          <option value="price-asc">ราคา: ต่ำไปสูง</option>
+          <option value="price-desc">ราคา: สูงไปต่ำ</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="occasionFilter">โอกาส:</label>
+        <select id="occasionFilter" onchange="applyFilters()">
+          <option value="all">ทั้งหมด</option>
+          <option value="birthday">วันเกิด</option>
+          <option value="graduation">รับปริญญา</option>
+          <option value="congrats">แสดงความยินดี</option>
+        </select>
+      </div>
+    </div>
+
+    <main class="product-grid" id="productGrid"></main>
   </div>
 
-  <!-- 1. Modal ฟอร์มเพิ่มสินค้าใหม่ -->
+  <!-- Modal ฟอร์มเพิ่มสินค้าใหม่ -->
   <div id="addModal" class="modal-overlay">
-    <div class="modal-box">
-      <button class="modal-close-btn" onclick="closeAddModal()">&times;</button>
-      <h2>เพิ่มสินค้าใหม่ลง Database</h2>
-      <form id="newProductForm" onsubmit="submitNewProduct(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>เพิ่มรายการสินค้าใหม่</h2>
+        <button class="modal-close-btn" onclick="closeAddModal()">&times;</button>
+      </div>
+      
+      <form id="newProductForm" onsubmit="handleAddNewProduct(event)">
         <div class="form-group">
-          <label>ชื่อสินค้า *</label>
-          <input type="text" id="name" required placeholder="เช่น Pastel Rose Blossom">
+          <label for="newProdName">ชื่อสินค้า (product_name) *</label>
+          <input type="text" id="newProdName" placeholder="เช่น Pastel Rose Dream" required>
         </div>
+
         <div class="form-group">
-          <label>ราคา (บาท) *</label>
-          <input type="number" id="price" required placeholder="เช่น 2490">
+          <label for="newProdPrice">ราคา (product_price) *</label>
+          <input type="number" id="newProdPrice" min="1" placeholder="เช่น 1800" required>
         </div>
+
         <div class="form-group">
-          <label>URL รูปภาพ *</label>
-          <input type="url" id="image_url" required placeholder="https://...">
+          <label for="newProdImg">ลิงก์รูปภาพ (product_image) *</label>
+          <input type="url" id="newProdImg" placeholder="https://..." required>
         </div>
+
         <div class="form-group">
-          <label>โอกาสที่เหมาะสม</label>
-          <select id="occasion">
-            <option value="birthday">วันเกิด</option>
-            <option value="congrats">แสดงความยินดี</option>
-            <option value="birthday,congrats">ทั้งวันเกิดและแสดงความยินดี</option>
-          </select>
+          <label>เหมาะสำหรับโอกาส (product_occasion):</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="occasionCheck" value="birthday"> วันเกิด</label>
+            <label><input type="checkbox" name="occasionCheck" value="graduation"> รับปริญญา</label>
+            <label><input type="checkbox" name="occasionCheck" value="congrats"> แสดงความยินดี</label>
+          </div>
         </div>
+
         <div class="form-group">
-          <label>รายละเอียดสินค้า</label>
-          <textarea id="description" rows="3" placeholder="ระบุประเภทดอกไม้ ความหมาย ฯลฯ"></textarea>
+          <label for="newProdDesc">รายละเอียดสินค้า (product_description)</label>
+          <textarea id="newProdDesc" rows="3" placeholder="ระบุประเภทดอกไม้ หรือความหมายพิเศษ..."></textarea>
         </div>
-        <button type="submit" class="btn-action">บันทึกลง MySQL</button>
+
+        <button type="submit" class="btn-submit" id="submitBtn">+ บันทึกสินค้าลง Database</button>
       </form>
     </div>
   </div>
 
-  <!-- 2. Modal ป็อปอัปสินค้าใหม่เด้งขึ้นมาอัตโนมัติ -->
+  <!-- Modal แจ้งเตือนสินค้าใหม่เด้งขึ้นมากลางจออัตโนมัติ -->
   <div id="newProductPopup" class="modal-overlay">
-    <div class="modal-box" style="text-align: center;">
-      <button class="modal-close-btn" onclick="closeNewProductPopup()">&times;</button>
-      <h2>🎉 สินค้าใหม่เข้าแล้ว!</h2>
+    <div class="modal-content" style="text-align: center;">
+      <div class="modal-header">
+        <h2 style="width: 100%; text-align: center;">🎉 เพิ่มสินค้าใหม่สำเร็จ!</h2>
+        <button class="modal-close-btn" onclick="closeNewProductPopup()">&times;</button>
+      </div>
       <img id="popupImg" class="popup-img-preview" src="" alt="สินค้าใหม่">
       <h3 id="popupName" style="color: #333; margin-bottom: 5px;"></h3>
       <p id="popupPrice" style="color: #8a4b0f; font-weight: bold; font-size: 18px; margin-bottom: 15px;"></p>
       <a id="popupLink" href="#" style="text-decoration: none;">
-        <button class="btn-action">ดูรายละเอียดช่อนี้</button>
+        <button class="btn-submit" style="margin-top: 0;">ดูหน้ารายละเอียดสินค้านี้</button>
       </a>
     </div>
   </div>
 
   <script>
-    // สลับเปิด/ปิดเมนูหมวดหมู่
+    let products = <?= json_encode($db_products, JSON_UNESCAPED_UNICODE) ?>;
+
     function toggleMenu() {
       const menu = document.getElementById('categoryMenu');
-      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      menu.classList.toggle('active');
     }
 
-    // ฟังก์ชันค้นหาและกรองสินค้า
-    function filterProducts() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const priceSelect = document.getElementById('priceFilter').value;
-      const occasionSelect = document.getElementById('occasionFilter').value;
-      const links = document.querySelectorAll('.product-link');
-
-      links.forEach(link => {
-        const card = link.querySelector('.product-card');
-        const name = card.querySelector('.product-name').innerText.toLowerCase();
-        const price = Number(card.getAttribute('data-price'));
-        const occasions = card.getAttribute('data-occasion');
-
-        const matchSearch = name.includes(search);
-        let matchPrice = true;
-        if (priceSelect === 'low') matchPrice = price < 2000;
-        if (priceSelect === 'high') matchPrice = price >= 2000;
-
-        let matchOccasion = true;
-        if (occasionSelect !== 'all') matchOccasion = occasions.includes(occasionSelect);
-
-        link.style.display = (matchSearch && matchPrice && matchOccasion) ? "" : "none";
-      });
+    function toggleSearchBox() {
+      const searchBox = document.getElementById('searchBoxContainer');
+      searchBox.classList.toggle('active');
+      if (searchBox.classList.contains('active')) {
+        document.getElementById('searchInput').focus();
+      }
     }
 
-    // Modal จัดการฟอร์มเพิ่มสินค้า
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      applyFilters();
+    }
+
     function openAddModal() {
       document.getElementById('addModal').classList.add('active');
     }
+
     function closeAddModal() {
       document.getElementById('addModal').classList.remove('active');
       document.getElementById('newProductForm').reset();
     }
 
-    // Modal ป็อปอัปสินค้าใหม่เด้งขึ้นมา
     function showNewProductPopup(item) {
-      document.getElementById('popupImg').src = item.image_url;
+      document.getElementById('popupImg').src = item.img;
       document.getElementById('popupName').innerText = item.name;
       document.getElementById('popupPrice').innerText = '฿' + Number(item.price).toLocaleString();
       document.getElementById('popupLink').href = 'product.php?id=' + item.id;
       document.getElementById('newProductPopup').classList.add('active');
     }
+
     function closeNewProductPopup() {
       document.getElementById('newProductPopup').classList.remove('active');
     }
 
-    // ฟังก์ชันส่งข้อมูลไปยัง add_product.php ผ่าน AJAX Fetch
-    async function submitNewProduct(e) {
-      e.preventDefault();
-      
+    function renderProducts(items) {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="no-products">ไม่พบสินค้าที่ตรงตามเงื่อนไขหรือคำค้นหา</div>';
+        return;
+      }
+
+      items.forEach(product => {
+        const link = document.createElement('a');
+        link.href = `product.php?id=${product.id}`;
+        link.className = 'product-link';
+        link.innerHTML = `
+          <div class="product-card">
+            <img src="${product.img}" alt="${product.name}" loading="lazy" onerror="this.src='https://placehold.co/400x500?text=TERMTEM+'">
+            <div class="product-name">${product.name}</div>
+            <div class="product-price">฿${product.price.toLocaleString()}</div>
+          </div>
+        `;
+        grid.appendChild(link);
+      });
+    }
+
+    function applyFilters() {
+      const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+      const priceVal = document.getElementById('priceFilter').value;
+      const sortVal = document.getElementById('sortFilter').value;
+      const occasionVal = document.getElementById('occasionFilter').value;
+
+      let filtered = products.filter(product => {
+        const matchSearch = product.name.toLowerCase().includes(searchQuery);
+
+        let matchPrice = true;
+        if (priceVal === 'under1500') {
+          matchPrice = product.price < 1500;
+        } else if (priceVal === '1500-2500') {
+          matchPrice = product.price >= 1500 && product.price <= 2500;
+        } else if (priceVal === 'above2500') {
+          matchPrice = product.price > 2500;
+        }
+
+        let matchOccasion = true;
+        if (occasionVal !== 'all') {
+          matchOccasion = product.occasions && product.occasions.includes(occasionVal);
+        }
+
+        return matchSearch && matchPrice && matchOccasion;
+      });
+
+      if (sortVal === 'price-asc') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortVal === 'price-desc') {
+        filtered.sort((a, b) => b.price - a.price);
+      } else if (sortVal === 'latest') {
+        filtered.sort((a, b) => b.id - a.id);
+      }
+
+      renderProducts(filtered);
+    }
+
+    async function handleAddNewProduct(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังบันทึก...';
+
+      const checkedBoxes = document.querySelectorAll('input[name="occasionCheck"]:checked');
+      const selectedOccasions = Array.from(checkedBoxes).map(cb => cb.value);
+
       const payload = {
-        name: document.getElementById('name').value.trim(),
-        price: document.getElementById('price').value,
-        image_url: document.getElementById('image_url').value.trim(),
-        occasion: document.getElementById('occasion').value,
-        description: document.getElementById('description').value.trim()
+        product_name: document.getElementById('newProdName').value.trim(),
+        product_price: parseFloat(document.getElementById('newProdPrice').value),
+        product_image: document.getElementById('newProdImg').value.trim(),
+        product_occasion: selectedOccasions.length > 0 ? selectedOccasions.join(',') : 'birthday,congrats,graduation',
+        product_description: document.getElementById('newProdDesc').value.trim()
       };
 
       try {
-        const res = await fetch('add_product.php', {
+        const response = await fetch('add_product.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const result = await res.json();
+        const result = await response.json();
 
         if (result.success) {
+          products.unshift(result.data);
           closeAddModal();
-
-          // สร้างการ์ดใหม่แทรกบนสุดของรายการทันที
-          const productList = document.getElementById('productList');
-          const newLink = document.createElement('a');
-          newLink.href = 'product.php?id=' + result.data.id;
-          newLink.className = 'product-link';
-          newLink.innerHTML = `
-            <div class="product-card" data-price="${result.data.price}" data-occasion="${result.data.occasion}">
-              <img src="${result.data.image_url}" alt="${result.data.name}">
-              <div class="product-name">${result.data.name}</div>
-              <div class="product-price">฿${Number(result.data.price).toLocaleString()}</div>
-            </div>
-          `;
-          productList.prepend(newLink);
-
-          // เด้งหน้าต่าง Pop-up สินค้าใหม่ขึ้นมาอัตโนมัติ
+          applyFilters();
           showNewProductPopup(result.data);
         } else {
           alert('เกิดข้อผิดพลาด: ' + result.message);
         }
       } catch (err) {
         alert('ไม่สามารถเชื่อมต่อ Server ได้');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '+ บันทึกสินค้าลง Database';
       }
     }
+
+    document.addEventListener('DOMContentLoaded', applyFilters);
   </script>
 </body>
 </html>
