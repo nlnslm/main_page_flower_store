@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Charm:wght@400;700&family=Sriracha&display=swap" rel="stylesheet">
+    
+   <title>เข้าสู่ระบบ - TERMTEM+</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Sriracha", cursive;
+            background-color: #fffdf8;
+            color: #555;
+        }
+
+        /* ===== Header ===== */
+        header {
+            height: 90px;
+            border-bottom: 5px solid #8a4b0f;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            font-style: italic;
+            color: #8a4b0f;
+        }
+
+        .logo span {
+            display: block;
+            font-size: 15px;
+            text-align: center;
+            margin-top: -5px;
+        }
+
+        .header-menu {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            color: #8a4b0f;
+            font-size: 18px;
+        }
+
+        .header-menu a {
+            text-decoration: none;
+            color: #8a4b0f;
+        }
+
+        .menu-icon {
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        /* ===== Main ===== */
+        main {
+            max-width: 900px;
+            margin: 35px auto 120px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: #8a4b0f;
+            font-size: 32px;
+            margin-bottom: 35px;
+        }
+
+        .login-box {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 30px 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        label span {
+            color: #e33;
+        }
+
+        input {
+            width: 100%;
+            height: 50px;
+            border: none;
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            font-size: 18px;
+            outline: none;
+        }
+
+        input:focus {
+            border: 2px solid#8a4b0f;
+            background-color: #fff;
+        }
+
+        .password-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .forgot {
+            color: #555;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .forgot:hover {
+            color: #8a4b0f;
+        }
+
+        /* ===== Buttons ===== */
+        .login-btn {
+            width: 100%;
+            height: 62px;
+            border: none;
+            border-radius: 15px;
+            background-color: #8a4b0f;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .login-btn:hover {
+            background-color: #8a4b0f;
+        }
+
+        .new-account {
+            text-align: center;
+            margin-top: 70px;
+        }
+
+        .new-account-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+            color: #8a4b0f;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .new-account-title::before,
+        .new-account-title::after {
+            content: "";
+            width: 105px;
+            height: 1px;
+            background-color: #8f7f53;
+        }
+
+        .register-btn {
+            width: 100%;
+            height: 62px;
+            border: none;
+            border-radius: 15px;
+            background-color: #ddd;
+            color: #333;
+            font-size: 21px;
+            cursor: pointer;
+        }
+
+        .register-btn:hover {
+            background-color: #ccc;
+        }
+        
+        .register-btn {
+            display: block;
+            width: 100%;
+            height: 62px;
+            background-color: #ddd;
+            color: #333;
+            font-size: 21px;
+            text-align: center;
+            text-decoration: none;
+            padding: 18px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        .register-btn:hover {
+            background-color: #ccc;
+        }
+
+        /* ===== Footer ===== */
+        footer {
+            background-color: #fafafa;
+            padding: 55px 7%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+        }
+
+        .footer-column h2 {
+            color: #8a4b0f;
+            font-size: 23px;
+            margin-bottom: 25px;
+        }
+
+        .footer-column p {
+            margin-bottom: 15px;
+            font-size: 17px;
+            color: #555;
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 600px) {
+
+            header {
+                height: 75px;
+                padding: 0 20px;
+            }
+
+            .logo {
+                font-size: 25px;
+            }
+
+            .logo span {
+                font-size: 11px;
+            }
+
+            .header-menu {
+                gap: 10px;
+                font-size: 14px;
+            }
+
+            .menu-icon {
+                font-size: 24px;
+            }
+
+            main {
+                margin-top: 30px;
+                padding: 0 15px;
+                margin-bottom: 80px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .login-box {
+                padding: 25px 20px;
+            }
+
+            label {
+                font-size: 18px;
+            }
+
+            .login-btn,
+            .register-btn {
+                height: 55px;
+                font-size: 18px;
+            }
+
+            .new-account {
+                margin-top: 50px;
+            }
+
+            footer {
+                grid-template-columns: 1fr;
+                padding: 40px 25px;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            TERMTEM+
+            <span>02-970-8000</span>
+        </div>
+
+        <div class="header-menu">
+            <a href="#">👤 ล็อกอิน/สมัครสมาชิก</a>
+            <span>🛒</span>
+            <span class="menu-icon">☰</span>
+        </div>
+    </header>
+
+
+    <!-- Main -->
+    <main>
+        <h1>ลงชื่อเข้าใช้งาน</h1>
+        <div class="login-box">
+
+            <form>
+                <!-- Email -->
+                <div class="form-group">
+                    <label>
+                        อีเมลล์ <span>*</span>
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="กรอกอีเมล์ของคุณ"
+                        required
+                    >
+                </div>
+
+
+                <!-- Password -->
+                <div class="form-group">
+
+                    <div class="password-title">
+                        <label>
+                            รหัสผ่าน <span>*</span>
+                        </label>
+
+                        <a href="#" class="forgot">
+                            ลืมรหัสผ่าน?
+                        </a>
+                    </div>
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="กรอกรหัสผ่านของคุณ"
+                        required
+                    >
+                </div>
+
+
+                <!-- Login Button -->
+                <button type="submit" class="login-btn">
+                    ลงชื่อเข้าใช้งาน
+                </button>
+            </form>
+            <!-- Register -->
+            <div class="new-account">
+                <div class="new-account-title">
+                    ลูกค้าใหม่ TERMTEM+?
+                </div>
+               <a href="register.html" class="register-btn">
+                    สมัครสมาชิก
+                </a>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h2>TERMTEM+</h2>
+            <p>เกี่ยวกับเรา</p>
+            <p>ข่าวและกิจกรรม</p>
+            <p>ติดต่อเรา</p>
+            <p>ร่วมงานกับเรา</p>
+        </div>
+        <div class="footer-column">
+            <h2>ช่องทางการสั่งซื้อ</h2>
+            <p>สั่งซื้อทางโทรศัพท์</p>
+            <p>สั่งซื้อผ่านเว็บไซต์</p>
+            <p>สั่งซื้อผ่านไลน์</p>
+            <p>สั่งซื้อผ่านอีเมล์</p>
+        </div>
+    </footer>
+    <script>
+
+        // ปุ่มสมัครสมาชิก
+        function goRegister() {
+            alert("กำลังไปหน้าสมัครสมาชิก");
+        }
+
+        // ตรวจสอบการ Login
+        document.querySelector("form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const email = document.querySelector('input[name="email"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            if (email === "" || password === "") {
+                alert("กรุณากรอกอีเมล์และรหัสผ่าน");
+            } else {
+                alert("เข้าสู่ระบบสำเร็จ");
+            }
+        });
+    </script>
+</body>
+</html>
