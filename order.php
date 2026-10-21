@@ -44,7 +44,7 @@
             <p>เติมความพิเศษให้ทุกโอกาส ด้วยช่อดอกไม้ที่คุณเลือกเอง ♡</p>
         </div>
 
-        <form id="order-form" action="order-success.html" method="get">
+        <form id="order-form" action="order-success.php" method="get">
 
             <input type="hidden" name="product_id" id="product-id" value="1">
             <input type="hidden" name="quantity" id="quantity-input" value="1">
@@ -216,7 +216,7 @@ $('order-form').addEventListener('submit', event => {
   if (!order.recipient || !order.address) return;
   try {
     sessionStorage.setItem('termtem_demo_order', JSON.stringify(order));
-    window.location.href = 'order-success.html';
+    window.location.href = 'order-success.php';
   } catch (error) {
     alert('เบราว์เซอร์ไม่สามารถเก็บข้อมูลสำหรับหน้าสรุปได้ กรุณาลองเปิดผ่าน Live Server');
   }
