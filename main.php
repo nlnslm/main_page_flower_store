@@ -1,3 +1,7 @@
+<?php
+include_once 'dbconnect_flower.php';
+?>
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
