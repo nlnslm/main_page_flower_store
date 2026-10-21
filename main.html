@@ -2,7 +2,6 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <!-- กำหนดให้แสดงผลพอดีกับหน้าจอทุกขนาด (Responsive) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TERMTEM+</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +20,7 @@
     }
     body {
       color: #333;
-      background-color: #fffdf8; /* สีพื้นหลังอ่อน */
+      background-color: #fffdf8;
     }
     .container {
       max-width: 900px;
@@ -37,12 +36,12 @@
       justify-content: space-between;
       align-items: center;
       padding: 15px 0;
-      border-bottom: 2px solid #8a4b0f; /* เส้นขอบล่างสีน้ำตาล */
+      border-bottom: 2px solid #8a4b0f;
     }
     .logo {
       font-size: 20px;
       font-weight: bold;
-      color: #8a4b0f; /* สีน้ำตาลหลัก */
+      color: #8a4b0f;
     }
     .header-right {
       display: flex;
@@ -50,24 +49,24 @@
       gap: 15px;
       font-size: 17px;
     }
-    /* ปุ่มเปิด-ปิดเมนู (Hamburger) */
     .menu-toggle-btn {
       background: none;
       border: 1px solid #8a4b0f;
       padding: 5px 10px;
       cursor: pointer;
       font-size: 16px;
+      border-radius: 4px;
     }
 
     /* ===================================================
        3. เมนูหมวดหมู่สินค้า (Category Navigation Menu)
        =================================================== */
     #categoryMenu {
-      display: none; /* ซ่อนไว้ก่อน จะเปิดเมื่อกดปุ่ม */
+      display: none;
       border-bottom: 1px solid #8a4b0f;
     }
     #categoryMenu.active {
-      display: block; /* แสดงผลเมื่อมีคลาส active */
+      display: block;
     }
     .menu-item {
       display: flex;
@@ -107,6 +106,7 @@
       border: 1px solid #8a4b0f;
       border-radius: 4px;
       background: #fffdf8;
+      font-family: inherit;
     }
 
     /* ===================================================
@@ -114,31 +114,43 @@
        =================================================== */
     .product-grid {
       display: grid;
-      /* แสดง 3 คอลัมน์บนจอคอม และจะย่อลงมาอัตโนมัติเมื่อจอแคบลง */
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       padding-bottom: 50px;
     }
     .product-card {
       text-align: center;
+      transition: transform 0.2s;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
     }
     .product-card img {
       width: 100%;
       height: 320px;
-      object-fit: cover; /* จัดภาพให้เต็มกรอบโดยไม่เสียสัดส่วน */
+      object-fit: cover;
       border-radius: 4px;
       background-color: #fff5c8;
     }
-    .product-code {
-      font-size: 14px;
-      color: #666;
+    .product-name {
+      font-size: 15px;
+      color: #555;
       margin-top: 10px;
+      font-weight: 500;
     }
     .product-price {
       font-size: 16px;
       font-weight: bold;
-      color: #333;
+      color: #8a4b0f;
       margin-top: 4px;
+    }
+    /* ข้อความเมื่อไม่พบสินค้าที่ตรงเงื่อนไข */
+    .no-products {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 0;
+      color: #888;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -150,12 +162,11 @@
       <div class="header-right">
         <span>👤 ล็อกอิน/สมัครสมาชิก</span>
         <span>🛒 0</span>
-        <!-- ปุ่มสลับแสดง/ซ่อนเมนูหมวดหมู่ -->
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
     </header>
 
-    <!-- รายการหมวดหมู่สินค้า (เปิด-ปิดได้) -->
+    <!-- รายการหมวดหมู่สินค้า -->
     <nav id="categoryMenu">
       <a href="#" class="menu-item"><span>ดอกไม้สด</span> <span>+</span></a>
       <a href="#" class="menu-item"><span>พวงหรีด</span> <span>+</span></a>
@@ -167,89 +178,166 @@
     <!-- หัวข้อและตัวกรอง -->
     <h1 class="page-title">ช่อดอกไม้</h1>
     <div class="filters-bar">
+      <!-- 1. ตัวกรองราคา -->
       <div class="filter-item">
-        <label>ราคา:</label>
-        <select>
-          <option>ทั้งหมด</option>
-          <option>ต่ำกว่า 1,000</option>
-          <option>1,000 - 2,500</option>
+        <label for="priceFilter">ราคา:</label>
+        <select id="priceFilter" onchange="applyFilters()">
+          <option value="all">ทั้งหมด</option>
+          <option value="under1500">ต่ำกว่า 1,500</option>
+          <option value="1500-2500">1,500 - 2,500</option>
+          <option value="above2500">มากกว่า 2,500</option>
         </select>
       </div>
+
+      <!-- 2. ตัวจัดเรียงลำดับ -->
       <div class="filter-item">
-        <label>จัดเรียง:</label>
-        <select>
-          <option>ยอดนิยม</option>
-          <option>ราคา: ต่ำไปสูง</option>
-          <option>ราคา: สูงไปต่ำ</option>
+        <label for="sortFilter">จัดเรียง:</label>
+        <select id="sortFilter" onchange="applyFilters()">
+          <option value="popular">ยอดนิยม</option>
+          <option value="price-asc">ราคา: ต่ำไปสูง</option>
+          <option value="price-desc">ราคา: สูงไปต่ำ</option>
         </select>
       </div>
+
+      <!-- 3. ตัวกรองโอกาส -->
       <div class="filter-item">
-        <label>โอกาส:</label>
-        <select>
-          <option>ทั้งหมด</option>
-          <option>วันเกิด</option>
-          <option>รับปริญญา</option>
-          <option>แสดงความยินดี</option>
+        <label for="occasionFilter">โอกาส:</label>
+        <select id="occasionFilter" onchange="applyFilters()">
+          <option value="all">ทั้งหมด</option>
+          <option value="birthday">วันเกิด</option>
+          <option value="graduation">รับปริญญา</option>
+          <option value="congrats">แสดงความยินดี</option>
         </select>
       </div>
     </div>
 
-    <!-- ตารางแสดงสินค้า -->
-    <main class="product-grid">
-        <!-- ชิ้นที่ 1 -->
-        <div class="product-card">
-            <img src="https://i.pinimg.com/736x/7c/51/d9/7c51d99b4fb4463be950c8e7ef576cf1.jpg" alt="ช่อดอกไม้ BC-26_01">
-            <div class="product-name">Pastel Dream</div>
-            <div class="product-price">฿2,590</div>
-        </div>
-
-      <!-- ชิ้นที่ 2 -->
-        <div class="product-card">
-            <img src="https://i.pinimg.com/736x/61/cd/65/61cd65ba2c05be9de85a3f4ad88a7e42.jpg" alt="ช่อดอกไม้ BC-26_02">
-            <div class="product-name">Blooming Paradise</div>
-            <div class="product-price">฿3,800</div>
-        </div>
-
-        <!-- ชิ้นที่ 3 -->
-        <div class="product-card">
-            <img src="https://i.pinimg.com/736x/c2/7c/c9/c27cc9f21e3782d2f7c0b8b9220627e2.jpg" alt="ช่อดอกไม้ BL-26_08">
-            <div class="product-name">Romantic Blossom</div>
-            <div class="product-price">฿3,160</div>
-        </div>
-
-        <!-- ชิ้นที่ 4 -->
-        <div class="product-card">
-          <img src="https://i.pinimg.com/736x/56/b8/6f/56b86f967314de094717cce142fabec1.jpg" alt="ช่อดอกไม้ BC-26_04">
-          <div class="product-name">Morning Sunshine</div>
-          <div class="product-price">฿1,290</div>
-        </div>
-
-        <!-- ชิ้นที่ 5 -->
-        <div class="product-card">
-          <img src="https://i.pinimg.com/1200x/be/8b/8e/be8b8e5989b0e16153afe8b4f8449498.jpg" alt="ช่อดอกไม้ BC-26_04">
-          <div class="product-name">Autumn Glow</div>
-          <div class="product-price">฿1,150</div>
-        </div>
-
-        <!-- ชิ้นที่ 6 -->
-        <div class="product-card">
-          <img src="https://i.pinimg.com/1200x/14/cb/8f/14cb8ff8c75c6f0f5836af0d93019622.jpg" alt="ช่อดอกไม้ BC-26_04">
-          <div class="product-name">Sweet Lily Charm</div>
-          <div class="product-price">฿1,420</div>
-        </div>
-
-      </div>
-    </main>
+    <!-- พื้นที่แสดงการ์ดสินค้า (จะถูกเรนเดอร์โดย JavaScript) -->
+    <main class="product-grid" id="productGrid"></main>
   </div>
 
-  <!-- JavaScript สำหรับการทำงานเบื้องต้น -->
   <script>
-    // ฟังก์ชันเปิด/ปิดเมนูหมวดหมู่
+    // 1. ฟังก์ชันเปิด/ปิดเมนูหมวดหมู่
     function toggleMenu() {
       const menu = document.getElementById('categoryMenu');
       menu.classList.toggle('active');
     }
-  </script>
 
+    // 2. ข้อมูลสินค้าทั้งหมด (สามารถเพิ่มหรือแก้ไขตรงนี้ได้)
+    const products = [
+      {
+        id: 1,
+        name: "Pastel Dream",
+        price: 2590,
+        popularity: 95,
+        occasions: ["birthday", "congrats"],
+        img: "https://i.pinimg.com/736x/7c/51/d9/7c51d99b4fb4463be950c8e7ef576cf1.jpg"
+      },
+      {
+        id: 2,
+        name: "Blooming Paradise",
+        price: 3800,
+        popularity: 88,
+        occasions: ["congrats", "graduation"],
+        img: "https://i.pinimg.com/736x/61/cd/65/61cd65ba2c05be9de85a3f4ad88a7e42.jpg"
+      },
+      {
+        id: 3,
+        name: "Romantic Blossom",
+        price: 3160,
+        popularity: 92,
+        occasions: ["birthday"],
+        img: "https://i.pinimg.com/736x/c2/7c/c9/c27cc9f21e3782d2f7c0b8b9220627e2.jpg"
+      },
+      {
+        id: 4,
+        name: "Morning Sunshine",
+        price: 1290,
+        popularity: 75,
+        occasions: ["graduation", "congrats"],
+        img: "https://i.pinimg.com/736x/56/b8/6f/56b86f967314de094717cce142fabec1.jpg"
+      },
+      {
+        id: 5,
+        name: "Autumn Glow",
+        price: 1150,
+        popularity: 80,
+        occasions: ["graduation"],
+        img: "https://i.pinimg.com/1200x/be/8b/8e/be8b8e5989b0e16153afe8b4f8449498.jpg"
+      },
+      {
+        id: 6,
+        name: "Sweet Lily Charm",
+        price: 1420,
+        popularity: 85,
+        occasions: ["birthday", "congrats"],
+        img: "https://i.pinimg.com/1200x/14/cb/8f/14cb8ff8c75c6f0f5836af0d93019622.jpg"
+      }
+    ];
+
+    // 3. ฟังก์ชันเรนเดอร์การ์ดสินค้าลงใน HTML
+    function renderProducts(items) {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = ''; // ล้างการแสดงผลเดิม
+
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="no-products">ไม่พบสินค้าที่ตรงตามเงื่อนไขที่เลือก</div>';
+        return;
+      }
+
+      items.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <img src="${product.img}" alt="${product.name}" loading="lazy">
+          <div class="product-name">${product.name}</div>
+          <div class="product-price">฿${product.price.toLocaleString()}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 4. ฟังก์ชันหลักสำหรับกรองและจัดเรียงสินค้าตามตัวเลือก
+    function applyFilters() {
+      const priceVal = document.getElementById('priceFilter').value;
+      const sortVal = document.getElementById('sortFilter').value;
+      const occasionVal = document.getElementById('occasionFilter').value;
+
+      // กรองสินค้า (Filter)
+      let filtered = products.filter(product => {
+        // กรองตามราคา
+        let matchPrice = true;
+        if (priceVal === 'under1500') {
+          matchPrice = product.price < 1500;
+        } else if (priceVal === '1500-2500') {
+          matchPrice = product.price >= 1500 && product.price <= 2500;
+        } else if (priceVal === 'above2500') {
+          matchPrice = product.price > 2500;
+        }
+
+        // กรองตามโอกาส
+        let matchOccasion = true;
+        if (occasionVal !== 'all') {
+          matchOccasion = product.occasions.includes(occasionVal);
+        }
+
+        return matchPrice && matchOccasion;
+      });
+
+      // จัดเรียงสินค้า (Sort)
+      if (sortVal === 'price-asc') {
+        filtered.sort((a, b) => a.price - b.price); // ราคาต่ำไปสูง
+      } else if (sortVal === 'price-desc') {
+        filtered.sort((a, b) => b.price - a.price); // ราคาสูงไปต่ำ
+      } else if (sortVal === 'popular') {
+        filtered.sort((a, b) => b.popularity - a.popularity); // เรียงตามความนิยม
+      }
+
+      // แสดงผลสินค้าที่ผ่านการกรองและเรียงแล้ว
+      renderProducts(filtered);
+    }
+
+    // เรียกให้แสดงผลสินค้าทั้งหมดทันทีเมื่อหน้าเว็บโหลดเสร็จ
+    document.addEventListener('DOMContentLoaded', applyFilters);
+  </script>
 </body>
 </html>
