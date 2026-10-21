@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>สรุปคำสั่งซื้อ | TERM TEM+</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@300;400;500;600;700&family=Itim&display=swap" rel="stylesheet">
+    <style>
+:root{--brown:#8a4b0f;--cream:#fffdf8;--border:#e9dcca;--muted:#7c7369}*{box-sizing:border-box}body{margin:0;background:var(--cream);color:#342a21;font-family:'Bai Jamjuree',sans-serif;font-size:15px}.site-header{max-width:1200px;margin:auto;padding:22px 28px;border-bottom:2px solid var(--brown);display:flex;justify-content:space-between;align-items:center}.brand{font-size:23px;font-weight:700;color:var(--brown);text-decoration:none}.site-header nav{display:flex;gap:24px;align-items:center}.site-header nav a,.back{color:#594b3f;text-decoration:none}.container{max-width:1200px;margin:34px auto 65px;padding:0 28px}.back{font-size:14px}.intro{margin:28px 0}.intro h1{font-family:Itim,sans-serif;font-size:36px;color:var(--brown);font-weight:400;margin:0 0 5px}.intro p{color:var(--muted);margin:0}.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(290px,1fr);gap:24px;align-items:start}.left{display:grid;gap:20px}.panel{border:1px solid var(--border);background:#fff;border-radius:15px;padding:26px;box-shadow:0 5px 24px #7b4a1610}.panel h2{font-size:19px;color:var(--brown);margin:0 0 22px;font-weight:600}.product{display:flex;gap:22px}.product img{width:155px;height:165px;object-fit:cover;border-radius:11px;background:#f4ece5}.product-info h3{font-size:20px;margin:4px 0 6px}.muted,.hint{color:var(--muted)}.product-info strong{color:var(--brown);font-size:21px}.qty{display:flex;align-items:center;margin-top:16px;gap:16px}.qty button{background:#fff9f1;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:20px;color:var(--brown)}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}label:not(.radio){display:block;font-weight:600;margin-bottom:16px}label em{color:#b34848;font-style:normal}input:not([type=radio]),textarea,select{display:block;width:100%;margin-top:8px;border:1px solid #dcd2c6;border-radius:8px;padding:12px 13px;font:inherit;background:#fffdfb;color:#352b21}input:focus,textarea:focus,select:focus{outline:2px solid #c7a47d}textarea{resize:vertical}.radio{display:block;margin:15px 0;cursor:pointer}.radio input{accent-color:var(--brown)}.hint{font-size:12px;line-height:1.65}.line{display:flex;justify-content:space-between;gap:12px;margin:18px 0}.summary{position:sticky;top:20px}.summary hr{border:0;border-top:1px solid var(--border);margin:23px 0}.total{font-size:20px;color:var(--brown);font-weight:700}.submit{background:var(--brown);color:#fff;border:0;border-radius:9px;width:100%;padding:15px;cursor:pointer;font:600 16px 'Bai Jamjuree',sans-serif;margin-top:18px}.submit:hover{background:#6e3908}.center{text-align:center}#result{margin-top:15px;font-size:13px;line-height:1.7}#result.success{background:#eef8ee;border:1px solid #a7d1a7;border-radius:8px;padding:12px}footer{text-align:center;padding:25px;color:var(--muted);border-top:1px solid var(--border)}@media(max-width:800px){.layout{grid-template-columns:1fr}.summary{position:static}}@media(max-width:550px){.site-header{padding:15px;gap:10px;flex-wrap:wrap}.site-header nav{gap:12px;font-size:12px}.container{padding:0 15px}.panel{padding:18px}.two{grid-template-columns:1fr;gap:0}.product img{width:105px;height:135px}.product{gap:12px}.intro h1{font-size:30px}}
+
+.error{margin-top:14px;padding:12px;border-radius:8px;color:#9b1c1c;background:#fff1f1;border:1px solid #f3b6b6}
+
+.receipt-container{max-width:780px}.receipt-panel{padding:36px 42px}.receipt-panel h1{font-family:Itim,sans-serif;text-align:center;font-size:38px;font-weight:400;color:var(--brown);margin:10px 0}.receipt-icon{background:#f5eadb;color:var(--brown);font-size:32px;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;margin:0 auto}.receipt-lead{text-align:center;color:var(--muted)}.order-number{text-align:center;background:#fff8ef;border:1px solid var(--border);border-radius:10px;padding:15px;margin:25px 0}.receipt-panel h2{margin-top:30px;margin-bottom:18px}.detail{display:grid;grid-template-columns:155px 1fr;gap:15px;margin:15px 0;line-height:1.65}.detail span{color:var(--muted)}.detail strong{font-weight:500;overflow-wrap:anywhere}.receipt-panel hr{border:0;border-top:1px solid var(--border);margin:22px 0}.receipt-note{margin-top:30px;padding:16px;border-radius:9px;background:#fff8ef;color:#65482f;text-align:center}.receipt-link{display:block;text-decoration:none;text-align:center}.receipt-link:hover{color:white}@media(max-width:550px){.receipt-panel{padding:24px 20px}.detail{grid-template-columns:1fr;gap:2px}}
+
+/* ส่วนหัวให้สอดคล้องกับหน้า main.html */
+.site-header {max-width:900px;padding:18px 15px}
+.container {max-width:1000px}
+.site-header .brand {font-size:20px}
+.site-header nav a:hover,.back:hover {color:#8a4b0f;text-decoration:underline}
+@media(max-width:550px){.site-header{max-width:100%}}
+
+</style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="main.html">🌸 TERM TEM+</a>
+        <nav>
+            <a href="main.html">หน้าหลัก</a>
+            <a href="Login.html">ล็อกอิน/สมัครสมาชิก</a>
+        </nav>
+    </header>
+
+    <main class="container receipt-container">
+        <section class="panel receipt-panel" id="receipt" hidden>
+            <div class="receipt-icon">✓</div>
+            <h1>สรุปคำสั่งซื้อ</h1>
+            <p class="receipt-lead">ตรวจสอบรายละเอียดที่คุณกรอกในหน้าสั่งซื้อ ♡</p>
+            <p class="order-number">รายการสั่งซื้อสำหรับสาธิต (ยังไม่ได้ส่งคำสั่งซื้อให้ร้าน)</p>
+
+            <h2>สรุปรายการสั่งซื้อ</h2>
+            <div class="line"><span>ช่อดอกไม้</span><strong id="receipt-product"></strong></div>
+            <div class="line"><span>ราคาต่อช่อ</span><span id="receipt-unit"></span></div>
+            <div class="line"><span>จำนวน</span><span id="receipt-quantity"></span></div>
+            <div class="line"><span>ค่าจัดส่ง</span><span id="receipt-shipping"></span></div>
+            <hr>
+            <div class="line total"><span>ยอดรวม</span><strong id="receipt-total"></strong></div>
+
+            <h2>ข้อมูลจัดส่ง</h2>
+            <div class="detail"><span>ชื่อผู้รับ</span><strong id="receipt-recipient"></strong></div>
+            <div class="detail"><span>เบอร์โทรศัพท์</span><strong id="receipt-phone"></strong></div>
+            <div class="detail"><span>ที่อยู่จัดส่ง</span><strong id="receipt-address"></strong></div>
+            <div class="detail"><span>วันที่จัดส่ง</span><strong id="receipt-date"></strong></div>
+            <div class="detail"><span>ช่วงเวลา</span><strong id="receipt-time"></strong></div>
+            <div class="detail" id="card-row" hidden><span>ข้อความบนการ์ด</span><strong id="receipt-card"></strong></div>
+            <div class="detail"><span>วิธีชำระเงิน</span><strong id="receipt-payment"></strong></div>
+
+            <p class="receipt-note">หน้านี้เป็นตัวอย่างการสั่งซื้อเพื่อรวมงานเว็บไซต์ ยังไม่ได้บันทึกข้อมูลลงฐานข้อมูลหรือรับชำระเงินจริง</p>
+            <a class="submit receipt-link" href="main.html">กลับไปหน้าหลัก →</a>
+        </section>
+        <section class="panel receipt-panel" id="missing-order" hidden>
+            <h1>ยังไม่มีรายการสั่งซื้อ</h1>
+            <p class="receipt-lead">กรุณาเลือกดอกไม้และกรอกข้อมูลในหน้าสั่งซื้อก่อน</p>
+            <a class="submit receipt-link" href="order.html">ไปหน้าสั่งซื้อ →</a>
+        </section>
+    </main>
+    <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
+    <script>
+// อ่านข้อมูลเฉพาะการสาธิตจาก sessionStorage ของเบราว์เซอร์
+let order = null;
+try {
+  order = JSON.parse(sessionStorage.getItem('termtem_demo_order') || 'null');
+} catch (_) {
+  order = null;
+}
+const $ = id => document.getElementById(id);
+const money = value => '฿' + Number(value || 0).toLocaleString('th-TH');
+if (!order || !order.product_name) {
+  $('missing-order').hidden = false;
+} else {
+  $('receipt').hidden = false;
+  const fields = {
+    'receipt-product': order.product_name,
+    'receipt-unit': money(order.unit_price),
+    'receipt-quantity': String(order.quantity) + ' ช่อ',
+    'receipt-shipping': money(order.shipping),
+    'receipt-total': money(order.total),
+    'receipt-recipient': order.recipient,
+    'receipt-phone': order.phone,
+    'receipt-address': order.address,
+    'receipt-date': order.delivery_date,
+    'receipt-time': order.delivery_time + ' น.',
+    'receipt-payment': order.payment_method
+  };
+  for (const [id, value] of Object.entries(fields)) $(id).textContent = value;
+  if (order.card_message) {
+    $('card-row').hidden = false;
+    $('receipt-card').textContent = order.card_message;
+  }
+}
+
+</script>
+</body>
+</html>
