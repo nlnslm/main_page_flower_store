@@ -1,5 +1,70 @@
 <?php
-include_once 'dbconnect_flower.php';
+session_start();
+require_once 'dbconnect_flower.php';
+
+// อ่านรายการสินค้าจากฐานข้อมูลเดียวกับหน้าหลัก
+$products = [];
+$result = mysqli_query($conn, "SELECT product_id, product_name, product_price, product_image FROM products ORDER BY product_id");
+if (!$result) {
+    die('ไม่สามารถอ่านข้อมูลสินค้าได้');
+}
+while ($row = mysqli_fetch_assoc($result)) {
+    $products[(string) $row['product_id']] = [
+        'name' => $row['product_name'],
+        'price' => (float) $row['product_price'],
+        'image' => $row['product_image']
+    ];
+}
+if (!$products) {
+    die('ยังไม่มีสินค้าในฐานข้อมูล กรุณาเพิ่มสินค้าก่อน');
+}
+
+// product.php ของเพื่อนส่ง product_id และ quantity ผ่าน POST
+$productId = (string) ($_POST['product_id'] ?? $_GET['product_id'] ?? $_GET['id'] ?? array_key_first($products));
+if (!isset($products[$productId])) {
+    $productId = (string) array_key_first($products);
+}
+$initialQuantity = max(1, min(99, (int) ($_POST['quantity'] ?? 1)));
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recipient'])) {
+    $recipient = trim((string) ($_POST['recipient'] ?? ''));
+    $phone = trim((string) ($_POST['phone'] ?? ''));
+    $address = trim((string) ($_POST['address'] ?? ''));
+    $deliveryDate = (string) ($_POST['deliveryDate'] ?? '');
+    $deliveryTime = (string) ($_POST['deliveryTime'] ?? '');
+    $cardMessage = trim((string) ($_POST['cardMessage'] ?? ''));
+    $payment = (string) ($_POST['payment'] ?? '');
+    $quantity = filter_var($_POST['quantity'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 99]]);
+    $validDate = DateTimeImmutable::createFromFormat('!Y-m-d', $deliveryDate);
+    $allowedTimes = ['09:00–12:00', '12:00–15:00', '15:00–18:00'];
+    $allowedPayments = ['โอนเงินผ่านธนาคาร', 'ชำระปลายทาง'];
+
+    if ($recipient === '' || !preg_match('/^[0-9]{9,10}$/', $phone) || $address === ''
+        || !$quantity || !$validDate || $validDate->format('Y-m-d') !== $deliveryDate
+        || $deliveryDate < date('Y-m-d') || !in_array($deliveryTime, $allowedTimes, true)
+        || !in_array($payment, $allowedPayments, true) || mb_strlen($cardMessage) > 200) {
+        $error = 'กรุณาตรวจสอบข้อมูลการสั่งซื้ออีกครั้ง';
+    } else {
+        $unitPrice = $products[$productId]['price'];
+        $total = $unitPrice * $quantity + 80;
+        $id = (int) $productId;
+        $stmt = mysqli_prepare($conn, 'INSERT INTO orders
+            (product_id, quantity, unit_price, total_amount, recipient, phone, address, delivery_date, delivery_time, card_message, payment_method)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        if ($stmt && mysqli_stmt_bind_param($stmt, 'iiddsssssss',
+            $id, $quantity, $unitPrice, $total, $recipient, $phone, $address,
+            $deliveryDate, $deliveryTime, $cardMessage, $payment)
+            && mysqli_stmt_execute($stmt)) {
+            $_SESSION['last_order_id'] = mysqli_insert_id($conn);
+            header('Location: order-success.php');
+            exit;
+        }
+        $error = 'ไม่สามารถบันทึกคำสั่งซื้อได้ กรุณาตรวจสอบตาราง orders ใน termtem_store';
+        error_log('TERMTEM+ order insert failed: ' . ($stmt ? mysqli_stmt_error($stmt) : mysqli_error($conn)));
+        if ($stmt) mysqli_stmt_close($stmt);
+    }
+}
 ?>
 
 <!doctype html>
@@ -30,11 +95,11 @@ include_once 'dbconnect_flower.php';
 <body>
 
     <header class="site-header">
-        <a class="brand" href="main.php">🌸 TERMTEM+</a>
+        <a class="brand" href="index.php">🌸 TERMTEM+</a>
 
         <nav>
             <a href="index.php">หน้าหลัก</a>
-            <a href="Login.php">ล็อกอิน/สมัครสมาชิก</a>
+            <a href="login.php">ล็อกอิน/สมัครสมาชิก</a>
             <a href="cart.php" class="nav-item">🛒 รถเข็น</a>
         </nav>
     </header>
@@ -48,7 +113,10 @@ include_once 'dbconnect_flower.php';
             <p>เติมความพิเศษให้ทุกโอกาส ด้วยช่อดอกไม้ที่คุณเลือกเอง ♡</p>
         </div>
 
-        <form id="order-form" action="order-success.php" method="get">
+        <?php if ($error !== ''): ?>
+        <div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
+        <form id="order-form" action="order.php" method="post">
 
             <input type="hidden" name="product_id" id="product-id" value="1">
             <input type="hidden" name="quantity" id="quantity-input" value="1">
@@ -162,24 +230,17 @@ include_once 'dbconnect_flower.php';
 
     </main>
 
-    <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
+    <footer>© 2026 TERMTEM+ · Flowers for every moment</footer>
 
     <script>
 // แก้รายการนี้ให้รหัส ชื่อ ราคา และตำแหน่งรูปตรงกับหน้าหลักของเพื่อน
 const $ = id => document.getElementById(id);
-const products = {
-  '1': {name:'Pastel Dream', price:2590, image:'https://i.pinimg.com/736x/7c/51/d9/7c51d99b4fb4463be950c8e7ef576cf1.jpg'},
-  '2': {name:'Blooming Paradise', price:3800, image:'https://i.pinimg.com/736x/61/cd/65/61cd65ba2c05be9de85a3f4ad88a7e42.jpg'},
-  '3': {name:'Romantic Blossom', price:3160, image:'https://i.pinimg.com/736x/c2/7c/c9/c27cc9f21e3782d2f7c0b8b9220627e2.jpg'},
-  '4': {name:'Morning Sunshine', price:1290, image:'https://i.pinimg.com/736x/56/b8/6f/56b86f967314de094717cce142fabec1.jpg'},
-  '5': {name:'Autumn Glow', price:1150, image:'https://i.pinimg.com/1200x/be/8b/8e/be8b8e5989b0e16153afe8b4f8449498.jpg'},
-  '6': {name:'Sweet Lily Charm', price:1420, image:'https://i.pinimg.com/1200x/14/cb/8f/14cb8ff8c75c6f0f5836af0d93019622.jpg'}
-};
+const products = <?= json_encode($products, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 const params = new URLSearchParams(location.search);
-const productId = params.get('id') || '1';
-$('product-id').value = productId in products ? productId : '1';
-const product = products[productId] || products['1'];
-let quantity = 1;
+const productId = <?= json_encode($productId) ?>;
+$('product-id').value = productId;
+const product = products[productId];
+let quantity = <?= (int) $initialQuantity ?>;
 const shippingFee = 80; // ค่าจัดส่งสำหรับการสาธิต
 const baht = amount => '฿' + amount.toLocaleString('th-TH');
 $('product-name').textContent = product.name;
@@ -202,35 +263,6 @@ const localToday = new Date(today.getTime()-today.getTimezoneOffset()*60000).toI
 dateInput.min = localToday;
 render();
 
-
-// สาธิตขั้นตอนสั่งซื้อบนเว็บ HTML (ไม่บันทึกข้อมูลลงฐานข้อมูล)
-$('order-form').addEventListener('submit', event => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  if (!form.reportValidity()) return;
-  const data = new FormData(form);
-  const order = {
-    product_name: product.name,
-    unit_price: product.price,
-    quantity: quantity,
-    shipping: shippingFee,
-    total: product.price * quantity + shippingFee,
-    recipient: String(data.get('recipient') || '').trim(),
-    phone: String(data.get('phone') || '').trim(),
-    address: String(data.get('address') || '').trim(),
-    delivery_date: String(data.get('deliveryDate') || ''),
-    delivery_time: String(data.get('deliveryTime') || ''),
-    card_message: String(data.get('cardMessage') || '').trim(),
-    payment_method: String(data.get('payment') || '')
-  };
-  if (!order.recipient || !order.address) return;
-  try {
-    sessionStorage.setItem('termtem_demo_order', JSON.stringify(order));
-    window.location.href = 'order-success.php';
-  } catch (error) {
-    alert('เบราว์เซอร์ไม่สามารถเก็บข้อมูลสำหรับหน้าสรุปได้ กรุณาลองเปิดผ่าน Live Server');
-  }
-});
 
 </script>
 

@@ -1,5 +1,35 @@
 <?php
-include_once 'dbconnect_flower.php';
+session_start();
+require_once 'dbconnect_flower.php';
+$order = null;
+$orderId = (int) ($_SESSION['last_order_id'] ?? 0);
+if ($orderId > 0) {
+    $stmt = mysqli_prepare($conn, 'SELECT o.*, p.product_name
+        FROM orders o JOIN products p ON p.product_id = o.product_id
+        WHERE o.order_id = ?');
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $orderId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($row = mysqli_fetch_assoc($result)) {
+            $order = [
+                'product_name' => $row['product_name'],
+                'unit_price' => (float) $row['unit_price'],
+                'quantity' => (int) $row['quantity'],
+                'shipping' => 80,
+                'total' => (float) $row['total_amount'],
+                'recipient' => $row['recipient'],
+                'phone' => $row['phone'],
+                'address' => $row['address'],
+                'delivery_date' => $row['delivery_date'],
+                'delivery_time' => $row['delivery_time'],
+                'card_message' => $row['card_message'],
+                'payment_method' => $row['payment_method']
+            ];
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
 ?>
 
 
@@ -58,8 +88,7 @@ include_once 'dbconnect_flower.php';
             <div class="detail" id="card-row" hidden><span>ข้อความบนการ์ด</span><strong id="receipt-card"></strong></div>
             <div class="detail"><span>วิธีชำระเงิน</span><strong id="receipt-payment"></strong></div>
 
-           
-            <a class="submit receipt-link" href="main.html">กลับไปหน้าหลัก →</a>
+            <a class="submit receipt-link" href="index.php">กลับไปหน้าหลัก →</a>
         </section>
         <section class="panel receipt-panel" id="missing-order" hidden>
             <h1>ยังไม่มีรายการสั่งซื้อ</h1>
@@ -67,15 +96,9 @@ include_once 'dbconnect_flower.php';
             <a class="submit receipt-link" href="order.php">ไปหน้าสั่งซื้อ →</a>
         </section>
     </main>
-    <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
+    <footer>© 2026 TERMTEM+ · Flowers for every moment</footer>
     <script>
-// อ่านข้อมูลเฉพาะการสาธิตจาก sessionStorage ของเบราว์เซอร์
-let order = null;
-try {
-  order = JSON.parse(sessionStorage.getItem('termtem_demo_order') || 'null');
-} catch (_) {
-  order = null;
-}
+const order = <?= json_encode($order, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 const $ = id => document.getElementById(id);
 const money = value => '฿' + Number(value || 0).toLocaleString('th-TH');
 if (!order || !order.product_name) {
