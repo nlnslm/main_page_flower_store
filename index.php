@@ -348,10 +348,10 @@ if ($result) {
         </a>
 
         <!-- ลิงก์รถเข็น -->
-        <a href="cart.html" class="nav-item">
-          🛒 <span>0</span>
+        <a href="cart.php" class="nav-item">
+          🛒 รถเข็น
         </a>
-        
+
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
     </header>

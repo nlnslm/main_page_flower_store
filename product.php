@@ -127,7 +127,9 @@ if (!$product) {
           <?= !empty($product['product_description']) ? nl2br(htmlspecialchars($product['product_description'])) : 'ไม่มีคำอธิบายเพิ่มเติมสำหรับสินค้ารายการนี้' ?>
         </p>
 
-        <button class="order-btn" onclick="alert('เพิ่ม <?= htmlspecialchars($product['product_name']) ?> ลงตะกร้าแล้ว!')">🛒 สั่งซื้อช่อนี้</button>
+        <a href="order.php?product_id=<?= $product['product_id'] ?>">
+          <button class="order-btn" onclick="alert('เพิ่ม <?= htmlspecialchars($product['product_name']) ?> ลงตะกร้าแล้ว!')">🛒 สั่งซื้อช่อนี้</button>
+        </a>
       </div>
     </div>
   </div>

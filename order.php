@@ -30,18 +30,18 @@ include_once 'dbconnect_flower.php';
 <body>
 
     <header class="site-header">
-        <a class="brand" href="main.html">🌸 TERMTEM+</a>
+        <a class="brand" href="main.php">🌸 TERMTEM+</a>
 
         <nav>
-            <a href="main.html">หน้าหลัก</a>
-            <a href="Login.html">ล็อกอิน/สมัครสมาชิก</a>
+            <a href="index.php">หน้าหลัก</a>
+            <a href="Login.php">ล็อกอิน/สมัครสมาชิก</a>
             <span>🛒 <span id="cart-count">1</span></span>
         </nav>
     </header>
 
     <main class="container">
 
-        <a class="back" href="main.html">← กลับไปเลือกดอกไม้</a>
+        <a class="back" href="index.php">← กลับไปเลือกดอกไม้</a>
 
         <div class="intro">
             <h1>สั่งซื้อดอกไม้</h1>
