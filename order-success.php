@@ -58,7 +58,7 @@ include_once 'dbconnect_flower.php';
             <div class="detail" id="card-row" hidden><span>ข้อความบนการ์ด</span><strong id="receipt-card"></strong></div>
             <div class="detail"><span>วิธีชำระเงิน</span><strong id="receipt-payment"></strong></div>
 
-            <p class="receipt-note">หน้านี้เป็นตัวอย่างการสั่งซื้อเพื่อรวมงานเว็บไซต์ ยังไม่ได้บันทึกข้อมูลลงฐานข้อมูลหรือรับชำระเงินจริง</p>
+           
             <a class="submit receipt-link" href="main.html">กลับไปหน้าหลัก →</a>
         </section>
         <section class="panel receipt-panel" id="missing-order" hidden>
