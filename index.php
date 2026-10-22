@@ -75,6 +75,19 @@ if ($result) {
       color: #8a4b0f;
     }
 
+    /* ปรับปรุงปุ่มให้เป็นลิงก์ที่ดูเหมือนปุ่ม */
+    .btn-text {
+      background: none;        /* ลบสีพื้นหลังสีเทา */
+      border: none;            /* ลบเส้นกรอบ */
+      padding: 0;              /* ลบช่องว่างรอบตัวอักษร */
+      font: inherit;           /* ใช้รูปแบบตัวอักษรและขนาดเดียวกับหน้าเว็บ */
+      color: inherit;          /* ใช้สีตัวอักษรตามเนื้อหาปกติ */
+      cursor: pointer;         /* แสดงรูปมือชี้เมื่อนำเมาส์ไปวาง */
+      display: inline-flex;    /* จัดไอคอนกับตัวหนังสือให้อยู่กึ่งกลางพอดีกัน */
+      align-items: center;
+      gap: 6px;                /* ระยะห่างระหว่างไอคอนกับข้อความ */
+    }
+
     /* เมนูหมวดหมู่ */
     #categoryMenu {
       display: none;
@@ -319,8 +332,8 @@ if ($result) {
     <header>
       <div class="logo">🌸TERMTEM+</div>
       <div class="header-right">
-        <a href="login.php" style="text-decoration: none; color: inherit;">
-          <button>👤 ล็อกอิน/สมัครสมาชิก</button>
+        <a href="login.php" class="btn-text">
+          👤 ล็อกอิน/สมัครสมาชิก
         </a>
         <span>🛒 0</span>
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
