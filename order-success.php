@@ -40,7 +40,6 @@ include_once 'dbconnect_flower.php';
             <div class="receipt-icon">✓</div>
             <h1>สรุปคำสั่งซื้อ</h1>
             <p class="receipt-lead">ตรวจสอบรายละเอียดที่คุณกรอกในหน้าสั่งซื้อ ♡</p>
-            <p class="order-number">รายการสั่งซื้อสำหรับสาธิต (ยังไม่ได้ส่งคำสั่งซื้อให้ร้าน)</p>
 
             <h2>สรุปรายการสั่งซื้อ</h2>
             <div class="line"><span>ช่อดอกไม้</span><strong id="receipt-product"></strong></div>

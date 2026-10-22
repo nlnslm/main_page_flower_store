@@ -143,7 +143,7 @@ include_once 'dbconnect_flower.php';
 
                     <div class="line">
                         <span>ค่าจัดส่ง</span>
-                        <span id="shipping">฿0</span>
+                        <span id="shipping">฿80</span>
                     </div>
 
                     <hr>
