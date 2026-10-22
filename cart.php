@@ -7,9 +7,17 @@ if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// -------------------------------------------------------------
+// ดึงข้อมูลที่อยู่ของผู้ใช้ปัจจุบันมาเตรียมไว้
+$saved_user = null;
+if (isset($_SESSION['user_id'])) {
+    $uid = (int)$_SESSION['user_id'];
+    $u_res = mysqli_query($conn, "SELECT fullname, phone, address, subdistrict, district, province, zipcode FROM users WHERE user_id = $uid");
+    if ($u_res) {
+        $saved_user = mysqli_fetch_assoc($u_res);
+    }
+}
+
 // จัดการคำขอเพิ่ม/ลด/ลบ สินค้า
-// -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
@@ -56,9 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// -------------------------------------------------------------
 // ดึงข้อมูลสินค้าที่เลือกไว้จาก MySQL และคำนวณราคา
-// -------------------------------------------------------------
 $cart_items = [];
 $total_price = 0;
 $total_qty = 0;
@@ -104,6 +110,7 @@ if (!empty($_SESSION['cart'])) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -362,6 +369,26 @@ if (!empty($_SESSION['cart'])) {
               </div>
             </div>
           <?php endforeach; ?>
+        </div>
+
+        <!-- กล่องแสดงที่อยู่จัดส่งอัตโนมัติ -->
+        <div style="margin-top: 15px; padding: 12px; background: #fffdf8; border: 1px solid #8a4b0f; border-radius: 6px; font-size: 13px;">
+            <div style="font-weight: 600; color: #8a4b0f; margin-bottom: 5px; display: flex; justify-content: space-between;">
+                <span>📍 ที่อยู่จัดส่งของคุณ</span>
+                <a href="profile.php" style="color: #8a4b0f; text-decoration: underline;">แก้ไข</a>
+            </div>
+            <?php if (!empty($saved_user['address'])): ?>
+                <p><strong>ผู้รับ:</strong> <?= htmlspecialchars($saved_user['fullname']) ?> (<?= htmlspecialchars($saved_user['phone']) ?>)</p>
+                <p style="color: #666; margin-top: 3px;">
+                    <?= htmlspecialchars($saved_user['address']) ?> 
+                    ต.<?= htmlspecialchars($saved_user['subdistrict']) ?> 
+                    อ.<?= htmlspecialchars($saved_user['district']) ?> 
+                    จ.<?= htmlspecialchars($saved_user['province']) ?> 
+                    <?= htmlspecialchars($saved_user['zipcode']) ?>
+                </p>
+            <?php else: ?>
+                <p style="color: #c94a4a;">คุณยังไม่ได้บันทึกที่อยู่จัดส่ง <a href="profile.php" style="color: #8a4b0f; font-weight: bold;">คลิกเพื่อเพิ่มที่อยู่</a></p>
+            <?php endif; ?>
         </div>
 
         <!-- กล่องสรุปคำสั่งซื้อพร้อมคิดค่าจัดส่ง 80 บาท -->

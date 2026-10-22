@@ -1,5 +1,17 @@
 <?php
-include_once 'dbconnect_flower.php';
+require_once 'dbconnect_flower.php';
+
+// ตรวจสอบสิทธิ์ว่าล็อกอินหรือยัง
+$user_id = $_SESSION['user_id'] ?? 0;
+$is_admin = false;
+
+// ตรวจสอบสิทธิ์ผู้ใช้ว่าเป็น admin หรือไม่
+if ($user_id > 0) {
+    $u_res = mysqli_query($conn, "SELECT role FROM users WHERE user_id = $user_id");
+    if ($u_row = mysqli_fetch_assoc($u_res)) {
+        $is_admin = ($u_row['role'] === 'admin');
+    }
+}
 
 // ดึงข้อมูลสินค้าโดยใช้ชื่อคอลัมน์ตามตารางจริง
 $sql = "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM products ORDER BY product_id DESC";
@@ -86,6 +98,22 @@ if ($result) {
       display: inline-flex;    /* จัดไอคอนกับตัวหนังสือให้อยู่กึ่งกลางพอดีกัน */
       align-items: center;
       gap: 6px;                /* ระยะห่างระหว่างไอคอนกับข้อความ */
+    }
+
+    /* ปุ่มโปรไฟล์เฉพาะสำหรับแก้ไขข้อมูลส่วนตัว */
+    .profile-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: #fff5c8;
+      color: #8a4b0f;
+      border: 1px solid #8a4b0f;
+      padding: 6px 12px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
 
     /* ปรับปรุงลิงก์รถเข็นให้เป็นปุ่มที่ดูเหมือนปุ่ม */
@@ -200,7 +228,7 @@ if ($result) {
         grid-template-columns: 1fr; /* จอมือถือแสดง 1 ชิ้นเต็มจอ */
       }
     }
-    
+
     .product-link {
       text-decoration: none;
       color: inherit;
@@ -360,6 +388,10 @@ if ($result) {
           👤 ล็อกอิน/สมัครสมาชิก
         </a>
 
+        <a href="profile.php" class="profile-btn">
+          <span>⚙️ ข้อมูลส่วนตัว & ที่อยู่</span>
+        </a>
+
         <!-- ลิงก์รถเข็น -->
         <a href="cart.php" class="nav-item">🛒 รถเข็น</a>
 
@@ -373,9 +405,18 @@ if ($result) {
         <span>ค้นหาสินค้า</span> <span>🔍</span>
       </div>
 
-      <div class="menu-item highlight-btn" onclick="openAddModal()">
-        <span>เพิ่มสินค้าใหม่</span> <span>➕</span>
-      </div>
+      <!-- ลิงก์ไปหน้า Admin Dashboard (เฉพาะแอดมิน) -->
+      <?php if ($is_admin): ?>
+        <a href="admin_dashboard.php" class="header-link" style="color: #c94a4a; font-weight: bold;">
+          🛠️ จัดการระบบ (Admin)
+        </a>
+      <?php endif; ?>
+      <!-- ปุ่มกดเปิด Modal เพิ่มสินค้า (จะแสดงเฉพาะเมื่อเป็นแอดมินเท่านั้น) -->
+      <?php if ($is_admin): ?>
+        <div class="menu-item highlight-btn" onclick="openAddModal()">
+          <span>เพิ่มสินค้าใหม่</span> <span>➕</span>
+        </div>
+      <?php endif; ?>
     </nav>
 
     <div id="searchBoxContainer" class="search-box-container">
