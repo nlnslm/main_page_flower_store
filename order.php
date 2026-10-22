@@ -180,14 +180,20 @@ const productId = params.get('id') || '1';
 $('product-id').value = productId in products ? productId : '1';
 const product = products[productId] || products['1'];
 let quantity = 1;
-const shippingFee = 0; // ค่าจัดส่งสำหรับการสาธิต
+const shippingFee = 80; // ค่าจัดส่งสำหรับการสาธิต
 const baht = amount => '฿' + amount.toLocaleString('th-TH');
 $('product-name').textContent = product.name;
 $('product-image').src = product.image;
 $('product-image').alt = product.name;
 $('unit-price').textContent = baht(product.price);
 $('shipping').textContent = baht(shippingFee);
-function render(){ $('quantity').textContent = quantity; $('quantity-input').value = quantity; $('cart-count').textContent = quantity; $('subtotal').textContent = baht(product.price*quantity); $('total').textContent = baht(product.price*quantity+shippingFee); }
+function render() {
+    $('quantity').textContent = quantity;
+    $('quantity-input').value = quantity;
+    $('subtotal').textContent = baht(product.price * quantity);
+    $('shipping').textContent = baht(shippingFee);
+    $('total').textContent = baht(product.price * quantity + shippingFee);
+}
 $('minus').addEventListener('click',()=>{quantity=Math.max(1,quantity-1);render()});
 $('plus').addEventListener('click',()=>{quantity=Math.min(99,quantity+1);render()});
 const dateInput = $('delivery-date');
