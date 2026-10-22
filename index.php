@@ -604,7 +604,7 @@ if ($result) {
           alert('เกิดข้อผิดพลาด: ' + result.message);
         }
       } catch (err) {
-        alert('ไม่สามารถเชื่อมต่อ Server ได้');
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = '+ บันทึกสินค้าลง Database';
