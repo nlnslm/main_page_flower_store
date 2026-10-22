@@ -319,17 +319,15 @@ if ($result) {
     <header>
       <div class="logo">🌸TERMTEM+</div>
       <div class="header-right">
-        <span>👤 ล็อกอิน/สมัครสมาชิก</span>
+        <a href="login.php" style="text-decoration: none; color: inherit;">
+          <button>👤 ล็อกอิน/สมัครสมาชิก</button>
+        </a>
         <span>🛒 0</span>
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
     </header>
 
     <nav id="categoryMenu">
-      <a href="#" class="menu-item"><span>ดอกไม้สด</span> <span>+</span></a>
-      <a href="#" class="menu-item"><span>พวงหรีด</span> <span>+</span></a>
-      <a href="#" class="menu-item"><span>ดอกไม้ประดิษฐ์</span> <span>+</span></a>
-      <a href="#" class="menu-item"><span>กระเช้าของขวัญ</span> <span>+</span></a>
       
       <div class="menu-item highlight-btn" onclick="toggleSearchBox()">
         <span>ค้นหาสินค้า</span> <span>🔍</span>
