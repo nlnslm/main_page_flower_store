@@ -1,3 +1,42 @@
+<?php
+include_once 'dbconnect_flower.php';
+ //4.2 check if form is submitted
+    if(isset($_POST['login'])) {
+        //4.3 initialize variables
+        //4.4 sanitize user inputs, prevent SQL injection
+        $user_email = mysqli_real_escape_string($conn, $_POST['user-email']);
+        $user_password = mysqli_real_escape_string($conn, $_POST['user-password']);
+
+        //4.5 check if user exists in database
+        $SQL = "SELECT * FROM users WHERE user_email='$user_email' AND user_password='" . md5($user_password) . "'";
+        // execute the query
+        $result = mysqli_query($conn, $SQL);
+
+        //4.6 if user exists, start session and redirect to index.php
+        //convert resultset to array and check if it has any rows
+        if($row = mysqli_fetch_array($result)) {
+            // user exists, start session
+            session_start();
+            if ($row['user_type'] == 'A') {
+                $_SESSION['session_admin_name'] = $row['user_name'];
+
+                header("Location: show_user.php");
+                exit();
+            } else {
+                $_SESSION['session_user_id'] = $row['user_id'];
+                $_SESSION['session_user_name'] = $row['user_name'];
+                // redirect to index.php
+                header("Location: index.php");
+                exit();
+            }
+        } else {
+            $login_error = "Invalid email or password.";
+        }
+    }
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -7,7 +46,7 @@
    <link rel="preconnect" href="https://fonts.googleapis.com">
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
    <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Charm:wght@400;700&family=Sriracha&display=swap" rel="stylesheet">
-    
+
    <title>เข้าสู่ระบบ - TERMTEM+</title>
 
     <style>
@@ -289,7 +328,7 @@
     <!-- Header -->
     <header>
         <div class="logo">
-            TERMTEM+
+            🌸TERMTEM+
             <span>02-970-8000</span>
         </div>
 
@@ -306,7 +345,7 @@
         <h1>ลงชื่อเข้าใช้งาน</h1>
         <div class="login-box">
 
-            <form>
+            <form action="login.php" method="POST">
                 <!-- Email -->
                 <div class="form-group">
                     <label>
@@ -345,7 +384,7 @@
 
 
                 <!-- Login Button -->
-                <button type="submit" class="login-btn">
+                <button type="submit" name="login" class="login-btn">
                     ลงชื่อเข้าใช้งาน
                 </button>
             </form>
@@ -354,7 +393,7 @@
                 <div class="new-account-title">
                     ลูกค้าใหม่ TERMTEM+?
                 </div>
-               <a href="register.html" class="register-btn">
+               <a href="register.php" class="register-btn">
                     สมัครสมาชิก
                 </a>
             </div>
@@ -386,7 +425,7 @@
 
         // ตรวจสอบการ Login
         document.querySelector("form").addEventListener("submit", function(event) {
-            event.preventDefault();
+
             const email = document.querySelector('input[name="email"]').value;
             const password = document.querySelector('input[name="password"]').value;
 
