@@ -28,10 +28,10 @@ include_once 'dbconnect_flower.php';
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="main.html">🌸 TERMTEM+</a>
+        <a class="brand" href="index.php">🌸 TERMTEM+</a>
         <nav>
-            <a href="main.html">หน้าหลัก</a>
-            <a href="Login.html">ล็อกอิน/สมัครสมาชิก</a>
+            <a href="index.php">หน้าหลัก</a>
+            <a href="login.php">ล็อกอิน/สมัครสมาชิก</a>
         </nav>
     </header>
 

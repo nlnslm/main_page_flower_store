@@ -445,7 +445,7 @@ if ($result) {
           <textarea id="newProdDesc" rows="3" placeholder="ระบุประเภทดอกไม้ หรือความหมายพิเศษ..."></textarea>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">+ บันทึกสินค้าลง Database</button>
+        <button type="submit" class="btn-submit" id="submitBtn">+ บันทึกสินค้า</button>
       </form>
     </div>
   </div>
@@ -607,11 +607,12 @@ if ($result) {
         alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = '+ บันทึกสินค้าลง Database';
+        submitBtn.innerText = 'บันทึกสินค้า';
       }
     }
 
     document.addEventListener('DOMContentLoaded', applyFilters);
   </script>
+  <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
 </body>
 </html>
