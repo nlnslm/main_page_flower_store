@@ -41,9 +41,9 @@ if ($result) {
       background-color: #fffdf8;
     }
     .container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 0 15px;
+      padding: 0 20px;
     }
 
     /* Header */
@@ -55,7 +55,7 @@ if ($result) {
       border-bottom: 2px solid #8a4b0f;
     }
     .logo {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
       color: #8a4b0f;
     }
@@ -184,10 +184,23 @@ if ($result) {
     /* การ์ดสินค้า */
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(4, 1fr); /* บนจอคอมแสดงแถวละ 4 คอลัมน์ */
       gap: 20px;
       padding-bottom: 50px;
     }
+    /* 4. รองรับหน้าจอแท็บเล็ตและมือถือให้อัตโนมัติ (Responsive) */
+    @media (max-width: 992px) {
+      .product-grid {
+        grid-template-columns: repeat(2, 1fr); /* จอแท็บเล็ตแสดง 2 ชิ้นต่อแถว */
+      }
+    }
+
+    @media (max-width: 576px) {
+      .product-grid {
+        grid-template-columns: 1fr; /* จอมือถือแสดง 1 ชิ้นเต็มจอ */
+      }
+    }
+    
     .product-link {
       text-decoration: none;
       color: inherit;
@@ -208,7 +221,7 @@ if ($result) {
     }
     .product-card img {
       width: 100%;
-      height: 320px;
+      height: 290px; /* ความสูงกำลังดีสำหรับแถวละ 4 ชิ้น ไม่สูงเกินไป */
       object-fit: cover;
       border-radius: 4px;
       background-color: #fff5c8;
@@ -348,9 +361,7 @@ if ($result) {
         </a>
 
         <!-- ลิงก์รถเข็น -->
-        <a href="cart.php" class="nav-item">
-          🛒 รถเข็น
-        </a>
+        <a href="cart.php" class="nav-item">🛒 รถเข็น</a>
 
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
@@ -363,7 +374,7 @@ if ($result) {
       </div>
 
       <div class="menu-item highlight-btn" onclick="openAddModal()">
-        <span>เพิ่มสินค้าใหม่ (บันทึกลง Database)</span> <span>➕</span>
+        <span>เพิ่มสินค้าใหม่</span> <span>➕</span>
       </div>
     </nav>
 
@@ -436,16 +447,17 @@ if ($result) {
           <div class="checkbox-group">
             <label><input type="checkbox" name="occasionCheck" value="birthday"> วันเกิด</label>
             <label><input type="checkbox" name="occasionCheck" value="graduation"> รับปริญญา</label>
+            <label><input type="checkbox" name="occasionCheck" value="marriage"> แต่งงาน</label>
             <label><input type="checkbox" name="occasionCheck" value="congrats"> แสดงความยินดี</label>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="newProdDesc">รายละเอียดสินค้า (product_description)</label>
+          <label for="newProdDesc">รายละเอียดสินค้า</label>
           <textarea id="newProdDesc" rows="3" placeholder="ระบุประเภทดอกไม้ หรือความหมายพิเศษ..."></textarea>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">+ บันทึกสินค้า</button>
+        <button type="submit" class="btn-submit" id="submitBtn">บันทึกสินค้า</button>
       </form>
     </div>
   </div>
@@ -583,7 +595,7 @@ if ($result) {
         product_name: document.getElementById('newProdName').value.trim(),
         product_price: parseFloat(document.getElementById('newProdPrice').value),
         product_image: document.getElementById('newProdImg').value.trim(),
-        product_occasion: selectedOccasions.length > 0 ? selectedOccasions.join(',') : 'birthday,congrats,graduation',
+        product_occasion: selectedOccasions.length > 0 ? selectedOccasions.join(',') : 'birthday,congrats,marriage,graduation',
         product_description: document.getElementById('newProdDesc').value.trim()
       };
 
@@ -613,6 +625,8 @@ if ($result) {
 
     document.addEventListener('DOMContentLoaded', applyFilters);
   </script>
-  <footer>© 2026 TERM TEM+ · Flowers for every moment</footer>
+  <footer style="text-align: center; padding: 20px; background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+    © 2026 TERMTEM+ · Flowers for every moment
+  </footer>
 </body>
 </html>

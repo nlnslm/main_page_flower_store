@@ -2,19 +2,19 @@
 session_start();
 require_once 'dbconnect_flower.php';
 
-// สร้าง session ตะกร้าสินค้าถ้ายังไม่มี
+// สร้างตะกร้าถ้ายังไม่มี
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
 // -------------------------------------------------------------
-// จัดการคำขอเพิ่ม/ลด/ลบ สินค้าในรถเข็น
+// จัดการคำขอเพิ่ม/ลด/ลบ สินค้า
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
 
-    // 1. เพิ่มสินค้าลงตะกร้า (จากหน้า product.php หรือหน้าอื่น)
+    // 1. เพิ่มสินค้าลงตะกร้า
     if ($action === 'add' && $id > 0) {
         $qty = isset($_POST['quantity']) ? max(1, (int)$_POST['quantity']) : 1;
         if (isset($_SESSION['cart'][$id])) {
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 2. ปรับเพิ่ม/ลดจำนวน
+    // 2. ปรับจำนวน (+ / -)
     if ($action === 'update' && $id > 0) {
         $type = $_POST['type'] ?? '';
         if ($type === 'plus') {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 3. ลบรายการสินค้านั้นออกจากรถเข็น
+    // 3. ลบสินค้าออกจากตะกร้า
     if ($action === 'remove' && $id > 0) {
         unset($_SESSION['cart'][$id]);
         header("Location: cart.php");
@@ -57,11 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // -------------------------------------------------------------
-// ดึงข้อมูลสินค้าที่อยู่ในรถเข็นจาก MySQL
+// ดึงข้อมูลสินค้าที่เลือกไว้จาก MySQL และคำนวณราคา
 // -------------------------------------------------------------
 $cart_items = [];
 $total_price = 0;
 $total_qty = 0;
+
+// กำหนดค่าจัดส่งคงที่ 80 บาท ต่อครั้ง (ถ้าไม่มีสินค้าในรถเข็น ค่าจัดส่งจะเป็น 0)
+$shipping_fee = 0;
+$grand_total = 0;
 
 if (!empty($_SESSION['cart'])) {
     $product_ids = array_keys($_SESSION['cart']);
@@ -92,6 +96,12 @@ if (!empty($_SESSION['cart'])) {
             ];
         }
     }
+
+    // คิดค่าจัดส่ง 80 บาท เมื่อมีสินค้าในรถเข็น
+    if ($total_qty > 0) {
+        $shipping_fee = 80;
+        $grand_total = $total_price + $shipping_fee;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -102,7 +112,7 @@ if (!empty($_SESSION['cart'])) {
   <title>รถเข็นสินค้า | TERMTEM+</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -120,8 +130,6 @@ if (!empty($_SESSION['cart'])) {
       max-width: 900px;
       margin: 0 auto;
     }
-
-    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -142,17 +150,11 @@ if (!empty($_SESSION['cart'])) {
       font-size: 15px;
       font-weight: 600;
     }
-
     .page-title {
       color: #8a4b0f;
       font-size: 24px;
       margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
-
-    /* ตารางรถเข็นและการจัดโครงสร้าง */
     .cart-layout {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -160,12 +162,8 @@ if (!empty($_SESSION['cart'])) {
       align-items: start;
     }
     @media (max-width: 768px) {
-      .cart-layout {
-        grid-template-columns: 1fr;
-      }
+      .cart-layout { grid-template-columns: 1fr; }
     }
-
-    /* การ์ดรายการในตะกร้า */
     .cart-list {
       display: flex;
       flex-direction: column;
@@ -187,13 +185,10 @@ if (!empty($_SESSION['cart'])) {
       border-radius: 6px;
       background-color: #fff5c8;
     }
-    .cart-item-info {
-      flex: 1;
-    }
+    .cart-item-info { flex: 1; }
     .cart-item-name {
       font-size: 16px;
       font-weight: 600;
-      color: #333;
       margin-bottom: 4px;
     }
     .cart-item-price {
@@ -202,8 +197,6 @@ if (!empty($_SESSION['cart'])) {
       font-weight: 600;
       margin-bottom: 8px;
     }
-
-    /* ปุ่มปรับจำนวน (+/-) */
     .qty-controls {
       display: flex;
       align-items: center;
@@ -218,9 +211,6 @@ if (!empty($_SESSION['cart'])) {
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
     }
     .qty-btn:hover {
       background: #8a4b0f;
@@ -231,8 +221,6 @@ if (!empty($_SESSION['cart'])) {
       min-width: 24px;
       text-align: center;
     }
-
-    /* ปุ่มลบรายการ */
     .delete-btn {
       background: none;
       border: none;
@@ -240,10 +228,7 @@ if (!empty($_SESSION['cart'])) {
       font-size: 14px;
       cursor: pointer;
       text-decoration: underline;
-      padding: 5px;
     }
-
-    /* กล่องสรุปยอดรวม (Order Summary) */
     .cart-summary {
       background: #fff;
       padding: 20px;
@@ -289,9 +274,7 @@ if (!empty($_SESSION['cart'])) {
       cursor: pointer;
       margin-top: 18px;
     }
-    .checkout-btn:hover {
-      background-color: #6d3a0a;
-    }
+    .checkout-btn:hover { background-color: #6d3a0a; }
     .clear-cart-btn {
       width: 100%;
       background: none;
@@ -303,22 +286,12 @@ if (!empty($_SESSION['cart'])) {
       cursor: pointer;
       margin-top: 10px;
     }
-    .clear-cart-btn:hover {
-      background: #f5f5f5;
-    }
-
-    /* ตะกร้าว่างเปล่า */
     .empty-cart {
       text-align: center;
       padding: 60px 20px;
       background: #fff;
       border: 1px solid #ebd9c8;
       border-radius: 8px;
-    }
-    .empty-cart p {
-      color: #777;
-      margin-bottom: 20px;
-      font-size: 16px;
     }
     .shop-now-btn {
       display: inline-block;
@@ -328,13 +301,12 @@ if (!empty($_SESSION['cart'])) {
       border-radius: 4px;
       text-decoration: none;
       font-weight: 600;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <!-- Header -->
     <header>
       <a href="index.php" class="logo">🌸 TERMTEM+</a>
       <a href="index.php" class="back-link">← เลือกดูสินค้าเพิ่ม</a>
@@ -343,14 +315,13 @@ if (!empty($_SESSION['cart'])) {
     <h1 class="page-title">🛒 รถเข็นของคุณ (<?= $total_qty ?> ชิ้น)</h1>
 
     <?php if (empty($cart_items)): ?>
-      <!-- กรณีรถเข็นว่างเปล่า -->
       <div class="empty-cart">
         <p>ยังไม่มีดอกไม้ในรถเข็นของคุณเลย</p>
         <a href="index.php" class="shop-now-btn">เลือกดูช่อดอกไม้ตอนนี้</a>
       </div>
     <?php else: ?>
-      <!-- แสดงรายการสินค้าในรถเข็น -->
       <div class="cart-layout">
+        <!-- รายการสินค้า -->
         <div class="cart-list">
           <?php foreach ($cart_items as $item): ?>
             <div class="cart-item">
@@ -360,9 +331,7 @@ if (!empty($_SESSION['cart'])) {
                 <div class="cart-item-name"><?= htmlspecialchars($item['name']) ?></div>
                 <div class="cart-item-price">฿<?= number_format($item['price']) ?></div>
                 
-                <!-- ตัวปรับจำนวน -->
                 <div class="qty-controls">
-                  <!-- ปุ่มลบ 1 ชิ้น -->
                   <form method="POST" style="display:inline;">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="type" value="minus">
@@ -372,7 +341,6 @@ if (!empty($_SESSION['cart'])) {
 
                   <span class="qty-number"><?= $item['quantity'] ?></span>
 
-                  <!-- ปุ่มเพิ่ม 1 ชิ้น -->
                   <form method="POST" style="display:inline;">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="type" value="plus">
@@ -382,7 +350,6 @@ if (!empty($_SESSION['cart'])) {
                 </div>
               </div>
 
-              <!-- ราคารวมของแถวนั้น & ปุ่มลบ -->
               <div style="text-align: right;">
                 <div style="font-weight: bold; color: #8a4b0f; margin-bottom: 10px;">
                   ฿<?= number_format($item['subtotal']) ?>
@@ -397,26 +364,29 @@ if (!empty($_SESSION['cart'])) {
           <?php endforeach; ?>
         </div>
 
-        <!-- กล่องสรุปยอดรวม -->
+        <!-- กล่องสรุปคำสั่งซื้อพร้อมคิดค่าจัดส่ง 80 บาท -->
         <div class="cart-summary">
           <div class="summary-title">สรุปคำสั่งซื้อ</div>
+          <div class="summary-row">
+            <span>รวมค่าสินค้า:</span>
+            <span>฿<?= number_format($total_price) ?></span>
+          </div>
           <div class="summary-row">
             <span>จำนวนทั้งหมด:</span>
             <span><?= $total_qty ?> ชิ้น</span>
           </div>
           <div class="summary-row">
             <span>ค่าจัดส่ง:</span>
-            <span style="color: #28a745;">ฟรี</span>
+            <span style="font-weight: 600; color: #8a4b0f;">฿<?= number_format($shipping_fee) ?></span>
           </div>
           <div class="summary-total">
             <span>ยอดชำระสุทธิ:</span>
-            <span>฿<?= number_format($total_price) ?></span>
+            <span>฿<?= number_format($grand_total) ?></span>
           </div>
 
-          <button class="checkout-btn" onclick="alert('ระบบกำลังเตรียมพาคุณไปยังขั้นตอนการชำระเงิน...')">ดำเนินการสั่งซื้อ</button>
+          <button class="checkout-btn" onclick="alert('ยอดชำระสุทธิ ฿<?= number_format($grand_total) ?>\nระบบกำลังนำคุณไปยังขั้นตอนการชำระเงิน...')">ดำเนินการสั่งซื้อ</button>
 
-          <!-- ปุ่มล้างรถเข็น -->
-          <form method="POST" onsubmit="return confirm('คุณต้องการลบสินค้าทั้งหมดออกจากรถเข็นใช่หรือไม่?');">
+          <form method="POST" onsubmit="return confirm('คุณต้องการล้างสินค้าทั้งหมดใช่หรือไม่?');">
             <input type="hidden" name="action" value="clear">
             <button type="submit" class="clear-cart-btn">ล้างรถเข็นทั้งหมด</button>
           </form>
@@ -424,6 +394,5 @@ if (!empty($_SESSION['cart'])) {
       </div>
     <?php endif; ?>
   </div>
-
 </body>
 </html>

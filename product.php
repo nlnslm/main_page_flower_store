@@ -1,11 +1,10 @@
 <?php
-include_once 'dbconnect_flower.php';
+session_start();
+require_once 'dbconnect_flower.php';
 
-// รับ product_id จาก URL เช่น product.php?id=1
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-$stmt = mysqli_prepare($conn, "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description 
-FROM products WHERE product_id = ?");
+$stmt = mysqli_prepare($conn, "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM products WHERE product_id = ?");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -14,8 +13,10 @@ $product = mysqli_fetch_assoc($result);
 if (!$product) {
     die("<h2 style='text-align:center; margin-top:50px; font-family:sans-serif;'>ไม่พบข้อมูลสินค้ารายการนี้ <br><br><a href='index.php'>กลับหน้าหลัก</a></h2>");
 }
-?>
 
+// นับจำนวนสินค้าในรถเข็น
+$cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -47,9 +48,18 @@ if (!$product) {
       border: 1px solid #ebd9c8;
       box-shadow: 0 4px 15px rgba(138, 75, 15, 0.08);
     }
-    .back-btn {
-      display: inline-block;
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
+    }
+    .back-btn {
+      text-decoration: none;
+      color: #8a4b0f;
+      font-weight: 600;
+    }
+    .cart-link {
       text-decoration: none;
       color: #8a4b0f;
       font-weight: 600;
@@ -94,6 +104,20 @@ if (!$product) {
       color: #555;
       margin-bottom: 25px;
     }
+    .qty-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .qty-select input {
+      width: 60px;
+      padding: 8px;
+      border: 1px solid #8a4b0f;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 16px;
+    }
     .order-btn {
       width: 100%;
       padding: 12px;
@@ -104,6 +128,7 @@ if (!$product) {
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: 0.2s;
     }
     .order-btn:hover {
       background-color: #6d3a0a;
@@ -112,7 +137,10 @@ if (!$product) {
 </head>
 <body>
   <div class="container">
-    <a href="index.php" class="back-btn">← กลับไปหน้ารวมสินค้า</a>
+    <div class="top-bar">
+      <a href="index.php" class="back-btn">← กลับไปหน้ารวมสินค้า</a>
+      <a href="cart.php" class="cart-link">🛒 รถเข็น (<?= $cart_count ?>)</a>
+    </div>
 
     <div class="detail-grid">
       <div>
@@ -127,9 +155,20 @@ if (!$product) {
           <?= !empty($product['product_description']) ? nl2br(htmlspecialchars($product['product_description'])) : 'ไม่มีคำอธิบายเพิ่มเติมสำหรับสินค้ารายการนี้' ?>
         </p>
 
-        <a href="order.php?product_id=<?= $product['product_id'] ?>">
-          <button class="order-btn" onclick="alert('เพิ่ม <?= htmlspecialchars($product['product_name']) ?> ลงตะกร้าแล้ว!')">🛒 สั่งซื้อช่อนี้</button>
-        </a>
+        <!-- ฟอร์มเพิ่มสินค้าลงรถเข็น -->
+        <form action="cart.php" method="POST">
+          <input type="hidden" name="action" value="add">
+          <input type="hidden" name="product_id" value="<?= $product['product_id'] ?>">
+          
+          <div class="qty-select">
+            <label for="quantity">จำนวน:</label>
+            <input type="number" id="quantity" name="quantity" value="1" min="1" max="99">
+          </div>
+
+          <button type="submit" class="order-btn">🛒 เพิ่มลงรถเข็นและดูรายการ</button>
+          <br><br>
+          <button type="submit" class="order-btn" formaction="order.php">สั่งซื้อทันที</button>
+        </form>
       </div>
     </div>
   </div>

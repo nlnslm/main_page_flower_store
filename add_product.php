@@ -10,10 +10,11 @@ if (!$data || empty($data['product_name']) || empty($data['product_price']) || e
     exit;
 }
 
+// ทำการ trim และ validate ข้อมูลที่ได้รับ
 $name = trim($data['product_name']);
 $price = (float)$data['product_price'];
 $image = trim($data['product_image']);
-$occasion = !empty($data['product_occasion']) ? trim($data['product_occasion']) : 'birthday,congrats';
+$occasion = !empty($data['product_occasion']) ? trim($data['product_occasion']) : 'birthday,congrats,graduation,marriage';
 $description = !empty($data['product_description']) ? trim($data['product_description']) : '';
 
 // Insert ลงในตาราง product โดยระบุชื่อคอลัมน์ตรงตามตารางจริง
