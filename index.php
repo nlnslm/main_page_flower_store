@@ -88,6 +88,16 @@ if ($result) {
       gap: 6px;                /* ระยะห่างระหว่างไอคอนกับข้อความ */
     }
 
+    /* ปรับปรุงลิงก์รถเข็นให้เป็นปุ่มที่ดูเหมือนปุ่ม */
+    .nav-item {
+      text-decoration: none; /* ลบเส้นใต้ออก */
+      color: inherit;        /* ใช้สีตัวอักษรปกติ (ไม่เป็นสีน้ำเงิน) */
+      display: inline-flex;  /* จัดไอคอนกับตัวเลขให้อยู่ตรงกลางระนาบเดียวกัน */
+      align-items: center;
+      gap: 6px;              /* เว้นระยะห่างระหว่างรถเข็นกับตัวเลข */
+      cursor: pointer;
+    }
+
     /* เมนูหมวดหมู่ */
     #categoryMenu {
       display: none;
@@ -332,10 +342,16 @@ if ($result) {
     <header>
       <div class="logo">🌸TERMTEM+</div>
       <div class="header-right">
+        <!-- ลิงก์ล็อกอิน/สมัครสมาชิก -->
         <a href="login.php" class="btn-text" style="text-decoration: none; color: inherit;">
           👤 ล็อกอิน/สมัครสมาชิก
         </a>
-        <span>🛒 0</span>
+
+        <!-- ลิงก์รถเข็น -->
+        <a href="cart.html" class="nav-item">
+          🛒 <span>0</span>
+        </a>
+        
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
     </header>
