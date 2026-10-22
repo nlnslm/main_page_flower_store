@@ -1,41 +1,34 @@
 <?php
 include_once 'dbconnect_flower.php';
- //4.2 check if form is submitted
-    if(isset($_POST['login'])) {
-        //4.3 initialize variables
-        //4.4 sanitize user inputs, prevent SQL injection
-        $user_email = mysqli_real_escape_string($conn, $_POST['user-email']);
-        $user_password = mysqli_real_escape_string($conn, $_POST['user-password']);
 
-        //4.5 check if user exists in database
-        $SQL = "SELECT * FROM users WHERE user_email='$user_email' AND user_password='" . md5($user_password) . "'";
-        // execute the query
-        $result = mysqli_query($conn, $SQL);
+// 4.2 check if form is submitted
+if (isset($_POST['login'])) {
+    // 4.3 & 4.4 sanitize user inputs, prevent SQL injection
+    $user_email = mysqli_real_escape_string($conn, $_POST['user-email']);
+    $user_password = mysqli_real_escape_string($conn, $_POST['user-password']);
 
-        //4.6 if user exists, start session and redirect to index.php
-        //convert resultset to array and check if it has any rows
-        if($row = mysqli_fetch_array($result)) {
-            // user exists, start session
-            session_start();
-            if ($row['user_type'] == 'A') {
-                $_SESSION['session_admin_name'] = $row['user_name'];
+    // 4.5 check if user exists in database
+    $SQL = "SELECT * FROM users WHERE user_email='$user_email' AND user_password='" . md5($user_password) . "'";
+    $result = mysqli_query($conn, $SQL);
 
-                header("Location: show_user.php");
-                exit();
-            } else {
-                $_SESSION['session_user_id'] = $row['user_id'];
-                $_SESSION['session_user_name'] = $row['user_name'];
-                // redirect to index.php
-                header("Location: index.php");
-                exit();
-            }
+    // 4.6 if user exists, start session and redirect
+    if ($row = mysqli_fetch_array($result)) {
+        session_start();
+        if ($row['user_type'] == 'A') {
+            $_SESSION['session_admin_name'] = $row['user_name'];
+            header("Location: show_user.php");
+            exit();
         } else {
-            $login_error = "Invalid email or password.";
+            $_SESSION['session_user_id'] = $row['user_id'];
+            $_SESSION['session_user_name'] = $row['user_name'];
+            header("Location: index.php");
+            exit();
         }
+    } else {
+        $login_error = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
     }
+}
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="th">
@@ -43,11 +36,11 @@ include_once 'dbconnect_flower.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-   <link rel="preconnect" href="https://fonts.googleapis.com">
-   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-   <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Charm:wght@400;700&family=Sriracha&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Charm:wght@400;700&family=Sriracha&display=swap" rel="stylesheet">
 
-   <title>เข้าสู่ระบบ - TERMTEM+</title>
+    <title>เข้าสู่ระบบ - TERMTEM+</title>
 
     <style>
         * {
@@ -149,7 +142,7 @@ include_once 'dbconnect_flower.php';
         }
 
         input:focus {
-            border: 2px solid#8a4b0f;
+            border: 2px solid #8a4b0f;
             background-color: #fff;
         }
 
@@ -169,6 +162,17 @@ include_once 'dbconnect_flower.php';
             color: #8a4b0f;
         }
 
+        /* กล่องแจ้งเตือน Error */
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border: 1px solid #ef9a9a;
+        }
+
         /* ===== Buttons ===== */
         .login-btn {
             width: 100%;
@@ -183,7 +187,7 @@ include_once 'dbconnect_flower.php';
         }
 
         .login-btn:hover {
-            background-color: #8a4b0f;
+            background-color: #6f3b0c;
         }
 
         .new-account {
@@ -210,21 +214,6 @@ include_once 'dbconnect_flower.php';
         }
 
         .register-btn {
-            width: 100%;
-            height: 62px;
-            border: none;
-            border-radius: 15px;
-            background-color: #ddd;
-            color: #333;
-            font-size: 21px;
-            cursor: pointer;
-        }
-
-        .register-btn:hover {
-            background-color: #ccc;
-        }
-        
-        .register-btn {
             display: block;
             width: 100%;
             height: 62px;
@@ -237,6 +226,7 @@ include_once 'dbconnect_flower.php';
             border-radius: 15px;
             cursor: pointer;
         }
+
         .register-btn:hover {
             background-color: #ccc;
         }
@@ -264,7 +254,6 @@ include_once 'dbconnect_flower.php';
 
         /* ===== Mobile ===== */
         @media (max-width: 600px) {
-
             header {
                 height: 75px;
                 padding: 0 20px;
@@ -339,66 +328,68 @@ include_once 'dbconnect_flower.php';
         </div>
     </header>
 
-
     <!-- Main -->
     <main>
         <h1>ลงชื่อเข้าใช้งาน</h1>
         <div class="login-box">
 
-            <form action="login.php" method="POST">
+            <!-- แสดง Error ถ้าอีเมลหรือรหัสผ่านผิด -->
+            <?php if (isset($login_error)): ?>
+                <div class="error-message">
+                    <?php echo $login_error; ?>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="POST">
                 <!-- Email -->
                 <div class="form-group">
                     <label>
-                        อีเมลล์ <span>*</span>
+                        อีเมล <span>*</span>
                     </label>
-
                     <input
                         type="email"
-                        name="email"
-                        placeholder="กรอกอีเมล์ของคุณ"
+                        name="user-email"
+                        placeholder="กรอกอีเมลของคุณ"
                         required
                     >
                 </div>
 
-
                 <!-- Password -->
                 <div class="form-group">
-
                     <div class="password-title">
                         <label>
                             รหัสผ่าน <span>*</span>
                         </label>
-
                         <a href="#" class="forgot">
                             ลืมรหัสผ่าน?
                         </a>
                     </div>
-
                     <input
                         type="password"
-                        name="password"
+                        name="user-password"
                         placeholder="กรอกรหัสผ่านของคุณ"
                         required
                     >
                 </div>
-
 
                 <!-- Login Button -->
                 <button type="submit" name="login" class="login-btn">
                     ลงชื่อเข้าใช้งาน
                 </button>
             </form>
+
             <!-- Register -->
             <div class="new-account">
                 <div class="new-account-title">
                     ลูกค้าใหม่ TERMTEM+?
                 </div>
-               <a href="register.php" class="register-btn">
+                <a href="register.php" class="register-btn">
                     สมัครสมาชิก
                 </a>
             </div>
         </div>
     </main>
+
     <!-- Footer -->
     <footer>
         <div class="footer-column">
@@ -413,26 +404,19 @@ include_once 'dbconnect_flower.php';
             <p>สั่งซื้อทางโทรศัพท์</p>
             <p>สั่งซื้อผ่านเว็บไซต์</p>
             <p>สั่งซื้อผ่านไลน์</p>
-            <p>สั่งซื้อผ่านอีเมล์</p>
+            <p>สั่งซื้อผ่านอีเมล</p>
         </div>
     </footer>
+
     <script>
-
-        // ปุ่มสมัครสมาชิก
-        function goRegister() {
-            alert("กำลังไปหน้าสมัครสมาชิก");
-        }
-
-        // ตรวจสอบการ Login
+        // ตรวจสอบความถูกต้องเบื้องต้นก่อนส่งฟอร์ม (Validation)
         document.querySelector("form").addEventListener("submit", function(event) {
-
-            const email = document.querySelector('input[name="email"]').value;
-            const password = document.querySelector('input[name="password"]').value;
+            const email = document.querySelector('input[name="user-email"]').value.trim();
+            const password = document.querySelector('input[name="user-password"]').value.trim();
 
             if (email === "" || password === "") {
-                alert("กรุณากรอกอีเมล์และรหัสผ่าน");
-            } else {
-                alert("เข้าสู่ระบบสำเร็จ");
+                event.preventDefault(); // ระงับการส่งฟอร์มถ้าข้อมูลว่าง
+                alert("กรุณากรอกอีเมลและรหัสผ่านให้ครบถ้วน");
             }
         });
     </script>
