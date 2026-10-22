@@ -35,7 +35,7 @@ include_once 'dbconnect_flower.php';
         <nav>
             <a href="index.php">หน้าหลัก</a>
             <a href="Login.php">ล็อกอิน/สมัครสมาชิก</a>
-            <span>🛒 <span id="cart-count">1</span></span>
+            <a href="cart.php" class="nav-item">🛒 รถเข็น</a>
         </nav>
     </header>
 
