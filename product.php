@@ -4,7 +4,8 @@ include_once 'dbconnect_flower.php';
 // รับ product_id จาก URL เช่น product.php?id=1
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-$stmt = mysqli_prepare($conn, "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description FROM product WHERE product_id = ?");
+$stmt = mysqli_prepare($conn, "SELECT product_id, product_name, product_price, product_image, product_occasion, product_description 
+FROM products WHERE product_id = ?");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
