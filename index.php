@@ -332,7 +332,7 @@ if ($result) {
     <header>
       <div class="logo">🌸TERMTEM+</div>
       <div class="header-right">
-        <a href="login.php" class="btn-text">
+        <a href="login.php" class="btn-text" style="text-decoration: none; color: inherit;">
           👤 ล็อกอิน/สมัครสมาชิก
         </a>
         <span>🛒 0</span>
