@@ -431,9 +431,6 @@ if (!empty($user_search)) {
                     <?php endif; ?>
                   </td>
                   <td style="white-space: nowrap;">
-                    <!-- ปุ่มเปิด Modal แก้ไขข้อมูลผู้ใช้ -->
-                    <button class="btn-edit" onclick='openEditUserModal(<?= json_encode($u) ?>)'>แก้ไข</button>
-
                     <!-- ฟอร์มลบผู้ใช้ -->
                     <form method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันลบผู้ใช้งานรหัส #<?= $u['user_id'] ?> ใช่หรือไม่?');">
                       <input type="hidden" name="action" value="delete_user">
@@ -495,7 +492,7 @@ if (!empty($user_search)) {
           <textarea name="product_description" rows="3" placeholder="ระบุข้อความหรือรายละเอียดของช่อนี้"></textarea>
         </div>
 
-        <button type="submit" class="btn-main" style="width:100%; margin-top:10px; padding:12px;">+ บันทึกสินค้าลง Database</button>
+        <button type="submit" class="btn-main" style="width:100%; margin-top:10px; padding:12px;">บันทึกสินค้า</button>
       </form>
     </div>
   </div>
@@ -505,10 +502,6 @@ if (!empty($user_search)) {
   <!-- ========================================== -->
   <div id="editUserModal" class="modal-overlay">
     <div class="modal-box">
-      <div class="modal-header">
-        <h3>แก้ไขข้อมูลผู้ใช้งาน <span id="display_uid" style="color:#888; font-size:16px;"></span></h3>
-        <button class="modal-close" onclick="closeModal('editUserModal')">&times;</button>
-      </div>
       <form method="POST">
         <input type="hidden" name="action" value="edit_user">
         <input type="hidden" name="user_id" id="edit_uid">
