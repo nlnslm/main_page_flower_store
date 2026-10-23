@@ -297,6 +297,28 @@ if (!$user) {
       margin-left: 6px;
       margin-top: 10px;
     }
+    
+    .btn-logout {
+        background-color: #fff0f0;
+        color: #c94a4a;
+        border: 1px solid #c94a4a;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+        background-color: #c94a4a;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(201, 74, 74, 0.25);
+    }
   </style>
 </head>
 <body>
@@ -449,7 +471,11 @@ if (!$user) {
           </form>
         </div>
       </div>
-
+        <form action="logout.php" method="POST" style="display: inline;" onsubmit="return confirm('ยืนยันออกจากระบบใช่หรือไม่?');">
+            <button type="submit" class="btn-logout">
+                ออกจากระบบ
+            </button>
+        </form>
     </div>
   </div>
 

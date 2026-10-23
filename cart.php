@@ -11,7 +11,7 @@ if (!isset($_SESSION['cart'])) {
 $saved_user = null;
 if (isset($_SESSION['user_id'])) {
     $uid = (int)$_SESSION['user_id'];
-    $u_res = mysqli_query($conn, "SELECT fullname, phone, address, subdistrict, district, province, zipcode FROM users WHERE user_id = $uid");
+    $u_res = mysqli_query($conn, "SELECT * FROM users WHERE user_id = $uid");
     if ($u_res) {
         $saved_user = mysqli_fetch_assoc($u_res);
     }
@@ -378,7 +378,11 @@ if (!empty($_SESSION['cart'])) {
                 <a href="profile.php" style="color: #8a4b0f; text-decoration: underline;">แก้ไข</a>
             </div>
             <?php if (!empty($saved_user['address'])): ?>
-                <p><strong>ผู้รับ:</strong> <?= htmlspecialchars($saved_user['fullname']) ?> (<?= htmlspecialchars($saved_user['phone']) ?>)</p>
+                <p>
+                    <strong>ผู้รับ:</strong> 
+                    <?= htmlspecialchars(($saved_user['user_name'] ?? '') . ' ' . ($saved_user['user_lastname'] ?? '')) ?> 
+                    (<?= htmlspecialchars(!empty($saved_user['user_phone']) ? $saved_user['user_phone'] : 'ยังไม่ระบุเบอร์') ?>)
+                </p>
                 <p style="color: #666; margin-top: 3px;">
                     <?= htmlspecialchars($saved_user['address']) ?> 
                     ต.<?= htmlspecialchars($saved_user['subdistrict']) ?> 
@@ -411,7 +415,11 @@ if (!empty($_SESSION['cart'])) {
             <span>฿<?= number_format($grand_total) ?></span>
           </div>
 
-          <button class="checkout-btn" onclick="alert('ยอดชำระสุทธิ ฿<?= number_format($grand_total) ?>\nระบบกำลังนำคุณไปยังขั้นตอนการชำระเงิน...')">ดำเนินการสั่งซื้อ</button>
+          <form action="order.php" method="POST">
+            <button class="checkout-btn" onclick="alert('ยอดชำระสุทธิ ฿<?= number_format($grand_total) ?>\nระบบกำลังนำคุณไปยังขั้นตอนการชำระเงิน...')">
+                ดำเนินการสั่งซื้อ
+            </button>
+          </form>
 
           <form method="POST" onsubmit="return confirm('คุณต้องการล้างสินค้าทั้งหมดใช่หรือไม่?');">
             <input type="hidden" name="action" value="clear">

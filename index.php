@@ -395,28 +395,18 @@ if ($result) {
         <!-- ลิงก์รถเข็น -->
         <a href="cart.php" class="nav-item">🛒 รถเข็น</a>
 
+        <a href="my_orders.php" class="nav-item">
+          <span>📦 คำสั่งซื้อของฉัน</span>
+        </a>
+
         <button class="menu-toggle-btn" onclick="toggleMenu()">☰ เมนู</button>
       </div>
     </header>
 
     <nav id="categoryMenu">
-      
       <div class="menu-item highlight-btn" onclick="toggleSearchBox()">
         <span>ค้นหาสินค้า</span> <span>🔍</span>
       </div>
-
-      <!-- ลิงก์ไปหน้า Admin Dashboard (เฉพาะแอดมิน) -->
-      <?php if ($is_admin): ?>
-        <a href="admin_dashboard.php" class="header-link" style="color: #c94a4a; font-weight: bold;">
-          🛠️ จัดการระบบ (Admin)
-        </a>
-      <?php endif; ?>
-      <!-- ปุ่มกดเปิด Modal เพิ่มสินค้า (จะแสดงเฉพาะเมื่อเป็นแอดมินเท่านั้น) -->
-      <?php if ($is_admin): ?>
-        <div class="menu-item highlight-btn" onclick="openAddModal()">
-          <span>เพิ่มสินค้าใหม่</span> <span>➕</span>
-        </div>
-      <?php endif; ?>
     </nav>
 
     <div id="searchBoxContainer" class="search-box-container">
@@ -451,6 +441,7 @@ if ($result) {
           <option value="all">ทั้งหมด</option>
           <option value="birthday">วันเกิด</option>
           <option value="graduation">รับปริญญา</option>
+          <option value="marriage">แต่งงาน</option>
           <option value="congrats">แสดงความยินดี</option>
         </select>
       </div>

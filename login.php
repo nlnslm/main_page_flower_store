@@ -1,28 +1,47 @@
 <?php
+// ย้าย session_start() มาไว้บรรทัดแรกสุดของไฟล์ เพื่อป้องกันปัญหา Header already sent
+session_start();
 include_once 'dbconnect_flower.php';
 
-// check if form is submitted
-if (isset($_POST['login'])) {
-    // 4.3 & 4.4 sanitize user inputs, prevent SQL injection
-    $user_email = mysqli_real_escape_string($conn, $_POST['user-email']);
-    $user_password = mysqli_real_escape_string($conn, $_POST['user-password']);
+$login_error = "";
 
-    // 4.5 check if user exists in database
-    $SQL = "SELECT * FROM users WHERE user_email='$user_email' AND user_password='" . md5($user_password) . "'";
+// ตรวจสอบเมื่อมีการกดปุ่ม Submit ฟอร์มล็อกอิน
+if (isset($_POST['login'])) {
+    // กำจัดอักขระพิเศษเพื่อป้องกัน SQL Injection
+    $user_email = mysqli_real_escape_string($conn, trim($_POST['user-email']));
+    $user_password = mysqli_real_escape_string($conn, trim($_POST['user-password']));
+
+    // ค้นหาผู้ใช้จากตาราง users ด้วย email และ password (md5)
+    $hashed_pass = md5($user_password);
+    $SQL = "SELECT * FROM users WHERE user_email = '$user_email' AND user_password = '$hashed_pass'";
     $result = mysqli_query($conn, $SQL);
 
-    // 4.6 if user exists, start session and redirect
-    if ($row = mysqli_fetch_array($result)) {
-        session_start();
-        if ($row['user_type'] == 'A') {
+    if ($row = mysqli_fetch_assoc($result)) {
+        // 1. เก็บ Session พื้นฐานสำหรับทุกคน (ใช้สำหรับ cart.php, profile.php, index.php)
+        $_SESSION['user_id']   = $row['user_id'];
+        $_SESSION['user_name'] = $row['user_name'];
+        $_SESSION['user_email'] = $row['user_email'];
+
+        // รองรับทั้งระบบตัวแปรเก่าที่คุณเคยตั้งไว้
+        $_SESSION['session_user_id']   = $row['user_id'];
+        $_SESSION['session_user_name'] = $row['user_name'];
+
+        // 2. ตรวจสอบสิทธิ์ผู้ใช้งาน (role = 'admin')
+        $is_admin = (isset($row['role']) && $row['role'] === 'admin');
+
+        if ($is_admin) {
+            // สิทธิ์ Admin
+            $_SESSION['role'] = 'admin';
             $_SESSION['session_admin_name'] = $row['user_name'];
-            header("Location: show_user.php");
+            
+            // ส่งแอดมินไปหน้าควบคุม (เช่น admin_dashboard.php)
+            header("Location: admin_dashboard.php");
             exit();
         } else {
-            $_SESSION['session_user_id'] = $row['user_id'];
-            $_SESSION['session_user_name'] = $row['user_name'];
-            // ตัวอย่างในไฟล์ login.php เมื่อตรวจสอบอีเมล/รหัสผ่านถูกต้องแล้ว
-            $_SESSION['user_id'] = $user['user_id']; // ต้องมีบรรทัดนี้เพื่อจำว่าใครล็อกอิน
+            // สิทธิ์ Customer ปกติ
+            $_SESSION['role'] = 'customer';
+            
+            // ส่งลูกค้าไปที่หน้าเลือกซื้อสินค้า
             header("Location: index.php");
             exit();
         }
@@ -30,8 +49,6 @@ if (isset($_POST['login'])) {
         $login_error = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
     }
 }
-
-
 ?>
 
 <!DOCTYPE html>

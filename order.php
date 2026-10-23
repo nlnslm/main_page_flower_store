@@ -2,68 +2,91 @@
 session_start();
 require_once 'dbconnect_flower.php';
 
-// อ่านรายการสินค้าจากฐานข้อมูลเดียวกับหน้าหลัก
-$products = [];
-$result = mysqli_query($conn, "SELECT product_id, product_name, product_price, product_image FROM products ORDER BY product_id");
-if (!$result) {
-    die('ไม่สามารถอ่านข้อมูลสินค้าได้');
-}
-while ($row = mysqli_fetch_assoc($result)) {
-    $products[(string) $row['product_id']] = [
-        'name' => $row['product_name'],
-        'price' => (float) $row['product_price'],
-        'image' => $row['product_image']
-    ];
-}
-if (!$products) {
-    die('ยังไม่มีสินค้าในฐานข้อมูล กรุณาเพิ่มสินค้าก่อน');
-}
-
-// product.php ของเพื่อนส่ง product_id และ quantity ผ่าน POST
-$productId = (string) ($_POST['product_id'] ?? $_GET['product_id'] ?? $_GET['id'] ?? array_key_first($products));
-if (!isset($products[$productId])) {
-    $productId = (string) array_key_first($products);
-}
-$initialQuantity = max(1, min(99, (int) ($_POST['quantity'] ?? 1)));
+// ป้องกัน Warning ตัวแปร $error ที่อาจเกิดขึ้นในแบบฟอร์ม
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recipient'])) {
-    $recipient = trim((string) ($_POST['recipient'] ?? ''));
-    $phone = trim((string) ($_POST['phone'] ?? ''));
-    $address = trim((string) ($_POST['address'] ?? ''));
-    $deliveryDate = (string) ($_POST['deliveryDate'] ?? '');
-    $deliveryTime = (string) ($_POST['deliveryTime'] ?? '');
-    $cardMessage = trim((string) ($_POST['cardMessage'] ?? ''));
-    $payment = (string) ($_POST['payment'] ?? '');
-    $quantity = filter_var($_POST['quantity'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 99]]);
-    $validDate = DateTimeImmutable::createFromFormat('!Y-m-d', $deliveryDate);
-    $allowedTimes = ['09:00–12:00', '12:00–15:00', '15:00–18:00'];
-    $allowedPayments = ['โอนเงินผ่านธนาคาร', 'ชำระปลายทาง'];
-
-    if ($recipient === '' || !preg_match('/^[0-9]{9,10}$/', $phone) || $address === ''
-        || !$quantity || !$validDate || $validDate->format('Y-m-d') !== $deliveryDate
-        || $deliveryDate < date('Y-m-d') || !in_array($deliveryTime, $allowedTimes, true)
-        || !in_array($payment, $allowedPayments, true) || mb_strlen($cardMessage) > 200) {
-        $error = 'กรุณาตรวจสอบข้อมูลการสั่งซื้ออีกครั้ง';
-    } else {
-        $unitPrice = $products[$productId]['price'];
-        $total = $unitPrice * $quantity + 80;
-        $id = (int) $productId;
-        $stmt = mysqli_prepare($conn, 'INSERT INTO orders
-            (product_id, quantity, unit_price, total_amount, recipient, phone, address, delivery_date, delivery_time, card_message, payment_method)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        if ($stmt && mysqli_stmt_bind_param($stmt, 'iiddsssssss',
-            $id, $quantity, $unitPrice, $total, $recipient, $phone, $address,
-            $deliveryDate, $deliveryTime, $cardMessage, $payment)
-            && mysqli_stmt_execute($stmt)) {
-            $_SESSION['last_order_id'] = mysqli_insert_id($conn);
-            header('Location: order-success.php');
-            exit;
-        }
-        $error = 'ไม่สามารถบันทึกคำสั่งซื้อได้ กรุณาตรวจสอบตาราง orders ใน termtem_store';
-        error_log('TERMTEM+ order insert failed: ' . ($stmt ? mysqli_stmt_error($stmt) : mysqli_error($conn)));
-        if ($stmt) mysqli_stmt_close($stmt);
+// 1. ดึงข้อมูลผู้ใช้งานที่ล็อกอินมาแสดงในช่องผู้รับ & ที่อยู่
+$saved_user = null;
+if (isset($_SESSION['user_id'])) {
+    $uid = (int)$_SESSION['user_id'];
+    $u_res = mysqli_query($conn, "SELECT * FROM users WHERE user_id = $uid");
+    if ($u_res) {
+        $saved_user = mysqli_fetch_assoc($u_res);
     }
+}
+
+// 2. ดึงรายการสินค้าจากตะกร้า Session หรือกรณีส่ง product_id มาโดยตรง (Buy Now)
+$cart_items = [];
+$subtotal = 0;
+$shipping_fee = 80; // ค่าจัดส่งคงที่ตามหน้าเว็บเดิม
+
+// กรณีที่ 1: สั่งซื้อโดยตรงผ่าน URL เช่น order.php?product_id=1&qty=1
+if (isset($_GET['product_id'])) {
+    $pid = (int)$_GET['product_id'];
+    $qty = isset($_GET['qty']) ? max(1, (int)$_GET['qty']) : 1;
+    
+    $p_stmt = mysqli_prepare($conn, "SELECT product_id, product_name, product_price, product_image FROM products WHERE product_id = ?");
+    mysqli_stmt_bind_param($p_stmt, "i", $pid);
+    mysqli_stmt_execute($p_stmt);
+    $p_res = mysqli_stmt_get_result($p_stmt);
+    if ($row = mysqli_fetch_assoc($p_res)) {
+        $row['qty'] = $qty;
+        $row['line_total'] = $row['product_price'] * $qty;
+        $subtotal += $row['line_total'];
+        $cart_items[] = $row;
+    }
+    mysqli_stmt_close($p_stmt);
+} 
+// กรณีที่ 2: มาจากตะกร้าสินค้า ($_SESSION['cart'])
+elseif (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    // ดึง product_id ทั้งหมดใน cart
+    $ids = array_map('intval', array_keys($_SESSION['cart']));
+    if (!empty($ids)) {
+        $ids_str = implode(',', $ids);
+        $p_res = mysqli_query($conn, "SELECT product_id, product_name, product_price, product_image FROM products WHERE product_id IN ($ids_str)");
+        
+        if ($p_res) {
+            while ($row = mysqli_fetch_assoc($p_res)) {
+                $pid = $row['product_id'];
+                
+                // รองรับทั้งแบบ $_SESSION['cart'][$pid]['qty'] และแบบ $_SESSION['cart'][$pid] = จำนวนตัวเลข
+                if (is_array($_SESSION['cart'][$pid])) {
+                    $qty = isset($_SESSION['cart'][$pid]['qty']) ? (int)$_SESSION['cart'][$pid]['qty'] : 1;
+                } else {
+                    $qty = (int)$_SESSION['cart'][$pid];
+                }
+                $qty = max(1, $qty);
+
+                $row['qty'] = $qty;
+                $row['line_total'] = $row['product_price'] * $qty;
+                $subtotal += $row['line_total'];
+                $cart_items[] = $row;
+            }
+        }
+    }
+}
+
+// ถ้าไม่มีสินค้าในตะกร้าเลย จึงค่อยดึงสินค้าตัวอย่าง 1 ชิ้น
+if (empty($cart_items)) {
+    $fallback_res = mysqli_query($conn, "SELECT product_id, product_name, product_price, product_image FROM products ORDER BY product_id ASC LIMIT 1");
+    if ($fallback_res && ($row = mysqli_fetch_assoc($fallback_res))) {
+        $row['qty'] = 1;
+        $row['line_total'] = $row['product_price'];
+        $subtotal += $row['line_total'];
+        $cart_items[] = $row;
+    }
+}
+
+$grand_total = $subtotal + $shipping_fee;
+
+// รวมที่อยู่จัดส่งของผู้ใช้ที่บันทึกไว้
+$full_address = "";
+if (!empty($saved_user['address'])) {
+    $full_address = $saved_user['address'] . 
+                    (!empty($saved_user['subdistrict']) ? " ต." . $saved_user['subdistrict'] : "") . 
+                    (!empty($saved_user['district']) ? " อ." . $saved_user['district'] : "") . 
+                    (!empty($saved_user['province']) ? " จ." . $saved_user['province'] : "") . 
+                    (!empty($saved_user['zipcode']) ? " " . $saved_user['zipcode'] : "");
 }
 ?>
 
@@ -109,14 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recipient'])) {
         <a class="back" href="index.php">← กลับไปเลือกดอกไม้</a>
 
         <div class="intro">
-            <h1>สั่งซื้อดอกไม้</h1>
+            <h1>สั่งซื้อสินค้า</h1>
             <p>เติมความพิเศษให้ทุกโอกาส ด้วยช่อดอกไม้ที่คุณเลือกเอง ♡</p>
         </div>
 
-        <?php if ($error !== ''): ?>
+        <?php if (!empty($error)): ?>
         <div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
-        <form id="order-form" action="order.php" method="post">
+
+        <form id="order-form" action="order-success.php" method="post">
 
             <input type="hidden" name="product_id" id="product-id" value="1">
             <input type="hidden" name="quantity" id="quantity-input" value="1">
@@ -125,146 +149,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recipient'])) {
 
                 <section class="left">
 
-                    <div class="panel">
-                        <h2>01 · รายการสินค้า</h2>
+                    <!-- ฝั่งซ้าย: รายการสินค้า และ ข้อมูลผู้รับ -->
+                    <div style="flex: 2; min-width: 320px;">
+      
+                        <div class="order-card">
+                            <h3>01 · รายการสินค้า</h3>
 
-                        <div class="product">
-                            <img id="product-image" src="https://i.pinimg.com/736x/7c/51/d9/7c51d99b4fb4463be950c8e7ef576cf1.jpg" alt="ช่อดอกไม้ที่เลือก" >
-
-                            <div class="product-info">
-                                <h3 id="product-name">Pastel Dream</h3>
-                                <p class="muted">ช่อดอกไม้จัดสด · 1 ช่อ</p>
-                                <strong id="unit-price">฿2,590</strong>
-
-                                <div class="qty">
-                                    <button type="button" id="minus" aria-label="ลดจำนวน">−</button>
-                                    <output id="quantity">1</output>
-                                    <button type="button" id="plus" aria-label="เพิ่มจำนวน">+</button>
+                            <?php if (!empty($cart_items)): ?>
+                              <?php foreach ($cart_items as $item): ?>
+                                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f2ede7;">
+                                  <img src="<?= htmlspecialchars($item['product_image']) ?>" style="width: 75px; height: 75px; object-fit: cover; border-radius: 6px;">
+                                  <div style="flex: 1;">
+                                    <h4 style="margin: 0; font-size: 16px;"><?= htmlspecialchars($item['product_name']) ?></h4>
+                                    <div style="color: #777; font-size: 13px; margin: 4px 0;">ช่อดอกไม้จัดสด · <?= $item['qty'] ?> ช่อ</div>
+                                    <div style="color: #8a4b0f; font-weight: bold;">฿<?= number_format($item['line_total']) ?></div>
+                                  </div>
+                                  <div style="font-size: 14px; color: #555; background: #faf6f0; padding: 4px 10px; border-radius: 4px;">
+                                    จำนวน: <?= $item['qty'] ?>
+                                  </div>
                                 </div>
+                              <?php endforeach; ?>
+                            <?php else: ?>
+                              <p style="color: #888;">ไม่มีสินค้าในรถเข็น</p>
+                            <?php endif; ?>
+                        </div>
+
+                    <!-- 02 · ข้อมูลผู้รับ (ดึงจาก users อัตโนมัติ) -->
+                    <div class="order-card" style="background:#fff; border:1px solid #ebd9c8; border-radius:8px; padding:20px; margin-bottom:20px;">
+                        <h3 style="color:#8a4b0f; font-size:17px; margin-bottom:15px;">02 · ข้อมูลผู้รับ</h3>
+        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">ชื่อผู้รับ *</label>
+                                <input type="text" name="receiver_name" required 
+                                       value="<?= htmlspecialchars(trim(($saved_user['user_name'] ?? '') . ' ' . ($saved_user['user_lastname'] ?? ''))) ?>" 
+                                       style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;" 
+                                       placeholder="ชื่อ-นามสกุล">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">เบอร์โทรศัพท์ *</label>
+                                <input type="tel" name="receiver_phone" required 
+                                       value="<?= htmlspecialchars($saved_user['user_phone'] ?? '') ?>" 
+                                       style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;" 
+                                       placeholder="08xxxxxxxx">
                             </div>
                         </div>
-                    </div>
 
-                    <div class="panel">
-                        <h2>02 · ข้อมูลผู้รับ</h2>
-
-                        <div class="two">
-                            <label>
-                                ชื่อผู้รับ <em>*</em>
-                                <input name="recipient" required placeholder="ชื่อ-นามสกุล">
-                            </label>
-
-                            <label>
-                                เบอร์โทรศัพท์ <em>*</em>
-                                <input name="phone" required inputmode="tel" pattern="[0-9]{9,10}" title="กรอกเบอร์โทร 9–10 หลัก" placeholder="08xxxxxxxx">
-                            </label>
+                        <div style="margin-bottom: 12px;">
+                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">ที่อยู่จัดส่ง *</label>
+                            <textarea name="receiver_address" rows="3" required 
+                                      style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;" 
+                                      placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"><?= htmlspecialchars($full_address) ?></textarea>
                         </div>
 
-                        <label>
-                            ที่อยู่จัดส่ง <em>*</em>
-                            <textarea name="address" required rows="3" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"></textarea>
-                        </label>
-
-                        <div class="two">
-                            <label>
-                                วันที่ต้องการจัดส่ง <em>*</em>
-                                <input id="delivery-date" name="deliveryDate" type="date" required>
-                            </label>
-
-                            <label>
-                                ช่วงเวลาจัดส่ง
-                                <select name="deliveryTime">
-                                    <option value="09:00–12:00">09:00–12:00 น.</option>
-                                    <option value="12:00–15:00">12:00–15:00 น.</option>
-                                    <option value="15:00–18:00">15:00–18:00 น.</option>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">วันที่ต้องการจัดส่ง *</label>
+                                <input type="date" name="delivery_date" required style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">ช่วงเวลาจัดส่ง</label>
+                                <select name="delivery_time" style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;">
+                                    <option value="09:00-12:00">09:00–12:00 น.</option>
+                                    <option value="13:00-16:00">13:00–16:00 น.</option>
+                                    <option value="16:00-19:00">16:00–19:00 น.</option>
                                 </select>
-                            </label>
+                            </div>
                         </div>
 
-                        <label>
-                            ข้อความบนการ์ด (ไม่บังคับ)
-                            <textarea name="cardMessage" maxlength="200" rows="2" placeholder="เช่น สุขสันต์วันเกิด ขอให้มีความสุขมาก ๆ"></textarea>
-                        </label>
+                        <div>
+                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">ข้อความบนการ์ด (ไม่บังคับ)</label>
+                            <input type="text" name="card_message" placeholder="ระบุข้อความอวยพร" style="width:100%; padding:9px 12px; border:1px solid #ebd9c8; border-radius:4px; font-family:inherit;">
+                        </div>
                     </div>
-
-                    <div class="panel">
-                        <h2>03 · วิธีชำระเงิน</h2>
-
-                        <label class="radio">
-                            <input type="radio" name="payment" value="โอนเงินผ่านธนาคาร" checked> โอนเงินผ่านธนาคาร
-                        </label>
-
-                        <label class="radio">
-                            <input type="radio" name="payment" value="ชำระปลายทาง"> ชำระเงินปลายทาง
-                        </label>
-                    </div>
-
-                </section>
-
-                <aside class="panel summary">
-                    <h2>สรุปคำสั่งซื้อ</h2>
-
-                    <div class="line">
-                        <span>ราคาสินค้า</span>
-                        <strong id="subtotal">฿2,590</strong>
-                    </div>
-
-                    <div class="line">
-                        <span>ค่าจัดส่ง</span>
-                        <span id="shipping">฿80</span>
-                    </div>
-
-                    <hr>
-
-                    <div class="line total">
-                        <span>ยอดรวม</span>
-                        <strong id="total">฿2,590</strong>
-                    </div>
-
-                    <button class="submit" type="submit">ยืนยันคำสั่งซื้อ →</button>
-
-                </aside>
-
+                </div>
             </div>
-        </form>
+
+            <!-- ฝั่งขวา: สรุปคำสั่งซื้อ -->
+            <div style="flex: 1; min-width: 280px;">
+                <div class="summary-box" style="background:#fff; border:1px solid #ebd9c8; border-radius:8px; padding:22px; position:sticky; top:20px;">
+                    <h3 style="font-size:18px; margin-bottom:15px; color:#222;">สรุปคำสั่งซื้อ</h3>
+        
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#666; font-size:14px;">
+                        <span>ราคาสินค้า</span>
+                        <span style="font-weight:600; color:#333;">฿<?= number_format($subtotal) ?></span>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; color:#666; font-size:14px;">
+                        <span>ค่าจัดส่ง</span>
+                        <span style="font-weight:600; color:#333;">฿<?= number_format($shipping_fee) ?></span>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-bottom:20px; padding-top:12px; border-top:1px dashed #ebd9c8; font-size:16px;">
+                        <span style="font-weight:bold; color:#8a4b0f;">ยอดรวม</span>
+                        <span style="font-weight:bold; color:#8a4b0f; font-size:20px;">฿<?= number_format($grand_total) ?></span>
+                    </div>
+
+                    <button class="submit" type="submit" style="width:100%; background:#8a4b0f; color:#fff; border:none; padding:12px; border-radius:4px; font-size:16px; font-weight:bold; cursor:pointer;">
+                        ยืนยันคำสั่งซื้อ →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 
     </main>
 
     <footer>© 2026 TERMTEM+ · Flowers for every moment</footer>
 
     <script>
-// แก้รายการนี้ให้รหัส ชื่อ ราคา และตำแหน่งรูปตรงกับหน้าหลักของเพื่อน
-const $ = id => document.getElementById(id);
-const products = <?= json_encode($products, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-const params = new URLSearchParams(location.search);
-const productId = <?= json_encode($productId) ?>;
-$('product-id').value = productId;
-const product = products[productId];
-let quantity = <?= (int) $initialQuantity ?>;
-const shippingFee = 80; // ค่าจัดส่งสำหรับการสาธิต
-const baht = amount => '฿' + amount.toLocaleString('th-TH');
-$('product-name').textContent = product.name;
-$('product-image').src = product.image;
-$('product-image').alt = product.name;
-$('unit-price').textContent = baht(product.price);
-$('shipping').textContent = baht(shippingFee);
-function render() {
-    $('quantity').textContent = quantity;
-    $('quantity-input').value = quantity;
-    $('subtotal').textContent = baht(product.price * quantity);
-    $('shipping').textContent = baht(shippingFee);
-    $('total').textContent = baht(product.price * quantity + shippingFee);
-}
-$('minus').addEventListener('click',()=>{quantity=Math.max(1,quantity-1);render()});
-$('plus').addEventListener('click',()=>{quantity=Math.min(99,quantity+1);render()});
-const dateInput = $('delivery-date');
-const today = new Date();
-const localToday = new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
-dateInput.min = localToday;
-render();
+        // แก้รายการนี้ให้รหัส ชื่อ ราคา และตำแหน่งรูปตรงกับหน้าหลักของเพื่อน
+        const $ = id => document.getElementById(id);
+        const params = new URLSearchParams(location.search);
+        $('product-id').value = productId;
+        const product = products[productId];
+        let quantity = <?= (int) $initialQuantity ?>;
+        const shippingFee = 80; // ค่าจัดส่งสำหรับการสาธิต
+        const baht = amount => '฿' + amount.toLocaleString('th-TH');
+        $('product-image').alt = product.name;
+        $('shipping').textContent = baht(shippingFee);
+        function render() {
+            $('quantity').textContent = quantity;
+            $('quantity-input').value = quantity;
+            $('subtotal').textContent = baht(product.price * quantity);
+            $('shipping').textContent = baht(shippingFee);
+            $('total').textContent = baht(product.price * quantity + shippingFee);
+        }
+        $('minus').addEventListener('click',()=>{quantity=Math.max(1,quantity-1);render()});
+        $('plus').addEventListener('click',()=>{quantity=Math.min(99,quantity+1);render()});
+        const dateInput = $('delivery-date');
+        const today = new Date();
+        const localToday = new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+        dateInput.min = localToday;
+        render();
 
 
-</script>
+    </script>
 
 </body>
 </html>
