@@ -317,7 +317,7 @@ if (isset($_POST['login'])) {
         <h1>ลงชื่อเข้าใช้งาน</h1>
         <div class="login-box">
             <!-- แสดง Error ถ้าอีเมลหรือรหัสผ่านผิด -->
-            <?php if (isset($login_error)): ?>
+            <?php if (!empty($login_error)): ?>
                 <div class="error-message">
                     <?php echo $login_error; ?>
                 </div>
