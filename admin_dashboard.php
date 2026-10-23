@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'delete_product') {
         $active_tab = 'products';
         $pid = (int)$_POST['product_id'];
-        $stmt = mysqli_prepare($conn, "DELETE FROM product WHERE product_id = ?");
+        $stmt = mysqli_prepare($conn, "DELETE FROM products WHERE product_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $pid);
 
         if (mysqli_stmt_execute($stmt)) {
