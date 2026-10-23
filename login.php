@@ -326,7 +326,7 @@ if (isset($_POST['login'])) {
             <form action="" method="POST">
                 <!-- Email -->
                 <div class="form-group">
-                    <label> อีเมล <span>*</span></label>
+                    <label> อีเมลล์ <span>*</span></label>
                     <input type="email" name="user-email" placeholder="กรอกอีเมลของคุณ" required >
                 </div>
 
@@ -334,7 +334,6 @@ if (isset($_POST['login'])) {
                 <div class="form-group">
                     <div class="password-title">
                         <label> รหัสผ่าน <span>*</span> </label>
-                        <a href="#" class="forgot"> ลืมรหัสผ่าน? </a>
                     </div>
                     <input
                         type="password" name="user-password" placeholder="กรอกรหัสผ่านของคุณ" required

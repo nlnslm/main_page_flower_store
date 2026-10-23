@@ -21,6 +21,34 @@ if (isset($_GET['id'])) {
     }
 }
 
+// 1. ดึงข้อมูลโปรไฟล์ของคนที่ต้องการแสดง (จาก $user_id ที่ได้จากโค้ดเดิมของคุณ)
+$query = mysqli_query($conn, "SELECT * FROM users WHERE user_id = $user_id");
+$user = mysqli_fetch_assoc($query);
+
+if (!$user) {
+    die("<h2 style='text-align:center; margin-top:50px;'>ไม่พบข้อมูลผู้ใช้งาน</h2>");
+}
+
+// 2. ตรวจสอบสิทธิ์ของ "คนที่กำลังล็อกอินใช้งานอยู่จริง" (Logged-in User)
+$logged_in_user_id = (int)($_SESSION['user_id'] ?? 0);
+$is_admin = false;
+
+if ($logged_in_user_id > 0) {
+    // ดึงสิทธิ์ของคนที่ล็อกอินจากตาราง users โดยตรง
+    $check_admin_res = mysqli_query($conn, "SELECT role FROM users WHERE user_id = $logged_in_user_id");
+    if ($check_admin_res && ($login_user = mysqli_fetch_assoc($check_admin_res))) {
+        $role = strtolower(trim($login_user['role'] ?? 'customer'));
+        // เช็คว่าคนที่ล็อกอินมีสิทธิ์เป็น admin หรือไม่
+        if ($role === 'admin' || $role === 'a') {
+            $is_admin = true;
+        }
+    }
+}
+
+// 3. กำหนดลิงก์และข้อความของปุ่มย้อนกลับตามคนที่ล็อกอินอยู่จริง
+$back_url  = $is_admin ? 'admin_dashboard.php' : 'index.php';
+$back_text = $is_admin ? '← กลับสู่แดชบอร์ดแอดมิน' : '← กลับสู่หน้าร้าน';
+
 $alert_msg = "";
 $alert_type = "";
 
@@ -326,7 +354,10 @@ if (!$user) {
   <div class="container">
     <header>
       <a href="index.php" class="logo">🌸 TERMTEM+</a>
-      <a href="index.php" class="back-link">← กลับสู่หน้าร้าน</a>
+      <!-- แทนที่ปุ่มย้อนกลับเดิมตรง Header ด้วยโค้ดนี้ -->
+      <a href="<?= $back_url ?>" style="color: #8a4b0f; text-decoration: none; font-weight: 600; font-size: 14px;">
+        <?= $back_text ?>
+      </a>
     </header>
 
     <?php if ($alert_msg): ?>

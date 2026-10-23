@@ -19,11 +19,11 @@ $alert_type = "";
 $active_tab = $_GET['tab'] ?? 'products';
 
 // -------------------------------------------------------------
-// 1. จัดการคำสั่งของ "สินค้า" (เพิ่ม / ลบ)
+// 1. จัดการคำสั่งของ "สินค้า" (เพิ่มสินค้า, ลบสินค้า, ลบผู้ใช้, เปลี่ยนสิทธิ์)
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    
-    // 1.1 เพิ่มสินค้าใหม่
+
+    // 1. เพิ่มสินค้าใหม่
     if ($_POST['action'] === 'add_product') {
         $active_tab = 'products';
         $name = trim($_POST['product_name'] ?? '');
@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $occasions = isset($_POST['occasions']) && is_array($_POST['occasions']) ? implode(',', $_POST['occasions']) : '';
 
         if (!empty($name) && $price > 0 && !empty($image)) {
+            // แก้ไขเป็นชื่อตาราง 'products'
             $stmt = mysqli_prepare($conn, "INSERT INTO products (product_name, product_price, product_image, product_occasion, product_description) VALUES (?, ?, ?, ?, ?)");
             mysqli_stmt_bind_param($stmt, "sdsss", $name, $price, $image, $occasions, $description);
 
@@ -50,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    // 1.2 ลบสินค้า
+    // 2. ลบสินค้า
     if ($_POST['action'] === 'delete_product') {
         $active_tab = 'products';
         $pid = (int)$_POST['product_id'];
-        $stmt = mysqli_prepare($conn, "DELETE FROM products WHERE product_id = ?");
+        $stmt = mysqli_prepare($conn, "DELETE FROM product WHERE product_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $pid);
 
         if (mysqli_stmt_execute($stmt)) {
@@ -67,61 +68,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         mysqli_stmt_close($stmt);
     }
 
-    // -------------------------------------------------------------
-    // 2. จัดการคำสั่งของ "ผู้ใช้งาน" (แก้ไข / ลบ)
-    // -------------------------------------------------------------
-
-    // 2.1 แก้ไขข้อมูลผู้ใช้
-    if ($_POST['action'] === 'edit_user') {
+    // 3. เปลี่ยนสิทธิ์ผู้ใช้งาน (เฉพาะ Admin คนแรก user_id = 1)
+    if ($_POST['action'] === 'update_user_role') {
         $active_tab = 'users';
-        $uid        = (int)$_POST['user_id'];
-        $u_name     = trim($_POST['user_name'] ?? '');
-        $u_lastname = trim($_POST['user_lastname'] ?? '');
-        $u_email    = trim($_POST['user_email'] ?? '');
-        $u_phone    = trim($_POST['user_phone'] ?? '');
-        $address    = trim($_POST['address'] ?? '');
-        $subdist    = trim($_POST['subdistrict'] ?? '');
-        $dist       = trim($_POST['district'] ?? '');
-        $prov       = trim($_POST['province'] ?? '');
-        $zip        = trim($_POST['zipcode'] ?? '');
+        $is_super_admin = (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === 1);
 
-        if (!empty($u_name) && !empty($u_lastname) && !empty($u_email)) {
-            $sql = "UPDATE users SET 
-                        user_name = ?, 
-                        user_lastname = ?, 
-                        user_email = ?, 
-                        user_phone = ?, 
-                        address = ?, 
-                        subdistrict = ?, 
-                        district = ?, 
-                        province = ?, 
-                        zipcode = ? 
-                    WHERE user_id = ?";
-            $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "sssssssssi", $u_name, $u_lastname, $u_email, $u_phone, $address, $subdist, $dist, $prov, $zip, $uid);
-
-            if (mysqli_stmt_execute($stmt)) {
-                $alert_msg = "อัปเดตข้อมูลผู้ใช้รหัส #$uid สำเร็จแล้ว!";
-                $alert_type = "success";
-            } else {
-                $alert_msg = "เกิดข้อผิดพลาดในการอัปเดตข้อมูลผู้ใช้: " . mysqli_stmt_error($stmt);
-                $alert_type = "error";
-            }
-            mysqli_stmt_close($stmt);
-        } else {
-            $alert_msg = "กรุณากรอกชื่อ, นามสกุล และอีเมลให้ครบถ้วน";
+        if (!$is_super_admin) {
+            $alert_msg = "เฉพาะผู้ดูแลระบบหลัก (Super Admin) เท่านั้นที่สามารถเปลี่ยนสิทธิ์ได้";
             $alert_type = "error";
+        } else {
+            $target_uid = (int)($_POST['target_user_id'] ?? 0);
+            $new_role   = trim($_POST['new_role'] ?? 'customer');
+
+            if ($target_uid === 1 && $new_role !== 'admin') {
+                $alert_msg = "ไม่สามารถลดสิทธิ์ผู้ดูแลระบบหลักคนแรกได้!";
+                $alert_type = "error";
+            } elseif ($target_uid > 0) {
+                // อัปเดตคอลัมน์ role (หากตารางใช้ user_type ให้เปลี่ยนเป็น user_type = ?)
+                $stmt = mysqli_prepare($conn, "UPDATE users SET role = ? WHERE user_id = ?");
+                mysqli_stmt_bind_param($stmt, "si", $new_role, $target_uid);
+
+                if (mysqli_stmt_execute($stmt)) {
+                    $alert_msg = "ปรับเปลี่ยนสิทธิ์ผู้ใช้รหัส #$target_uid เป็น '$new_role' สำเร็จแล้ว!";
+                    $alert_type = "success";
+                } else {
+                    $alert_msg = "เกิดข้อผิดพลาดในการเปลี่ยนสิทธิ์: " . mysqli_stmt_error($stmt);
+                    $alert_type = "error";
+                }
+                mysqli_stmt_close($stmt);
+            }
         }
     }
 
-    // 2.2 ลบผู้ใช้
+    // 4. ลบผู้ใช้งาน
     if ($_POST['action'] === 'delete_user') {
         $active_tab = 'users';
         $uid = (int)$_POST['user_id'];
 
-        // ป้องกันแอดมินเผลอลบบัญชีตัวเอง
         if (isset($_SESSION['user_id']) && $uid === (int)$_SESSION['user_id']) {
             $alert_msg = "ไม่สามารถลบบัญชีที่กำลังล็อกอินใช้งานอยู่ได้!";
+            $alert_type = "error";
+        } elseif ($uid === 1) {
+            $alert_msg = "ไม่สามารถลบผู้ดูแลระบบหลักคนแรกได้!";
             $alert_type = "error";
         } else {
             $stmt = mysqli_prepare($conn, "DELETE FROM users WHERE user_id = ?");
@@ -389,65 +377,100 @@ if (!empty($user_search)) {
     <div id="tab-users" class="panel-card" style="display: <?= $active_tab === 'users' ? 'block' : 'none' ?>;">
       <div class="panel-header">
         <h2>👥 รายชื่อสมาชิกผู้ใช้งานทั้งหมด</h2>
-        <form method="GET" class="search-box">
-          <input type="hidden" name="tab" value="users">
-          <input type="text" name="user_search" class="search-input" placeholder="ค้นหาชื่อ, อีเมล, เบอร์โทร..." value="<?= htmlspecialchars($user_search) ?>">
-          <button type="submit" class="btn-main">ค้นหา</button>
-          <?php if (!empty($user_search)): ?>
-            <a href="admin_dashboard.php?tab=users" style="align-self:center; font-size:13px; color:#8a4b0f; text-decoration:none;">ล้างค้นหา</a>
-          <?php endif; ?>
-        </form>
+          <form method="GET" class="search-box">
+            <input type="hidden" name="tab" value="users">
+            <input type="text" name="user_search" class="search-input" placeholder="ค้นหาชื่อ, อีเมล, เบอร์โทร..." value="<?= htmlspecialchars($user_search) ?>">
+            <button type="submit" class="btn-main">ค้นหา</button>
+            <?php if (!empty($user_search)): ?>
+              <a href="admin_dashboard.php?tab=users" style="align-self:center; font-size:13px; color:#8a4b0f; text-decoration:none;">ล้างค้นหา</a>
+            <?php endif; ?>
+          </form>
       </div>
 
       <div class="table-container">
         <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>ชื่อ - นามสกุล</th>
-              <th>อีเมล</th>
-              <th>เบอร์โทร</th>
-              <th>ที่อยู่จัดส่งประจำ</th>
-              <th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (mysqli_num_rows($users_result) > 0): ?>
-              <?php while ($u = mysqli_fetch_assoc($users_result)): ?>
-                <tr>
-                  <td>#<?= $u['user_id'] ?></td>
-                  <td><strong><?= htmlspecialchars($u['user_name'] . ' ' . $u['user_lastname']) ?></strong></td>
-                  <td><?= htmlspecialchars($u['user_email']) ?></td>
-                  <td><?= htmlspecialchars($u['user_phone'] ?: '-') ?></td>
-                  <td style="color:#555; max-width: 280px; font-size:13px;">
-                    <?php if (!empty($u['address'])): ?>
-                      <?= htmlspecialchars($u['address']) ?> 
-                      ต.<?= htmlspecialchars($u['subdistrict'] ?? '') ?> 
-                      อ.<?= htmlspecialchars($u['district'] ?? '') ?> 
-                      จ.<?= htmlspecialchars($u['province'] ?? '') ?> 
-                      <?= htmlspecialchars($u['zipcode'] ?? '') ?>
-                    <?php else: ?>
-                      <span style="color:#aaa; font-style:italic;">ยังไม่ได้ระบุที่อยู่</span>
-                    <?php endif; ?>
-                  </td>
-                  <td style="white-space: nowrap;">
-                    <!-- ฟอร์มลบผู้ใช้ -->
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th>อีเมล</th>
+            <th>เบอร์โทร</th>
+            <th>ที่อยู่จัดส่งประจำ</th>
+            <th>สิทธิ์การใช้งาน</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (mysqli_num_rows($users_result) > 0): ?>
+            <?php while ($u = mysqli_fetch_assoc($users_result)): ?>
+              <?php 
+                // ตรวจสอบค่าสิทธิ์จากคอลัมน์ role หรือ user_type
+                $user_role = $u['role'] ?? ($u['user_type'] ?? 'customer'); 
+              ?>
+              <tr>
+                <td>#<?= $u['user_id'] ?></td>
+                <td><strong><?= htmlspecialchars($u['user_name'] . ' ' . $u['user_lastname']) ?></strong></td>
+                <td><?= htmlspecialchars($u['user_email']) ?></td>
+                <td><?= htmlspecialchars($u['user_phone'] ?: '-') ?></td>
+                <td style="color:#555; max-width: 250px; font-size:13px;">
+                  <?php if (!empty($u['address'])): ?>
+                    <?= htmlspecialchars($u['address']) ?> 
+                    ต.<?= htmlspecialchars($u['subdistrict'] ?? '') ?> 
+                    อ.<?= htmlspecialchars($u['district'] ?? '') ?> 
+                    จ.<?= htmlspecialchars($u['province'] ?? '') ?> 
+                    <?= htmlspecialchars($u['zipcode'] ?? '') ?>
+                  <?php else: ?>
+                    <span style="color:#aaa; font-style:italic;">ยังไม่ได้ระบุที่อยู่</span>
+                  <?php endif; ?>
+                </td>
+
+                <!-- ส่วนกำหนดสิทธิ์การใช้งาน -->
+                <td>
+                  <?php if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === 1): ?>
+                    <!-- แสดง Dropdown เปลี่ยนสิทธิ์เฉพาะ Admin คนแรก (user_id = 1) -->
+                    <form method="POST" style="display:flex; align-items:center; gap:6px; margin:0;">
+                      <input type="hidden" name="action" value="update_user_role">
+                      <input type="hidden" name="target_user_id" value="<?= $u['user_id'] ?>">
+                    
+                      <select name="new_role" style="padding:4px 6px; border-radius:4px; border:1px solid #ebd9c8; font-family:inherit; font-size:13px;">
+                        <option value="customer" <?= ($user_role === 'customer' || $user_role === 'C') ? 'selected' : '' ?>>👤 ทั่วไป</option>
+                        <option value="admin" <?= ($user_role === 'admin' || $user_role === 'A') ? 'selected' : '' ?>>🛡️ แอดมิน</option>
+                      </select>
+                    
+                      <?php if ((int)$u['user_id'] !== 1): ?>
+                        <button type="submit" class="btn-main" style="padding:4px 8px; font-size:12px;">บันทึก</button>
+                      <?php else: ?>
+                        <span style="font-size:12px; color:#888; font-style:italic;">(หลัก)</span>
+                      <?php endif; ?>
+                    </form>
+                  <?php else: ?>
+                    <!-- คนอื่นที่เข้ามาดูจะแสดงเป็นป้ายสถานะเท่านั้น -->
+                    <span style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; background: <?= ($user_role === 'admin' || $user_role === 'A') ? '#fff5c8; color:#8a4b0f;' : '#eee; color:#666;' ?>">
+                      <?= ($user_role === 'admin' || $user_role === 'A') ? '🛡️ แอดมิน' : '👤 ทั่วไป' ?>
+                    </span>
+                  <?php endif; ?>
+                </td>
+
+                <td style="white-space: nowrap;">
+                  <!-- ฟอร์มลบผู้ใช้ (ป้องกันไม่ให้ปุ่มลบขึ้นที่ Admin คนแรก) -->
+                  <?php if ((int)$u['user_id'] !== 1): ?>
                     <form method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันลบผู้ใช้งานรหัส #<?= $u['user_id'] ?> ใช่หรือไม่?');">
                       <input type="hidden" name="action" value="delete_user">
                       <input type="hidden" name="user_id" value="<?= $u['user_id'] ?>">
                       <button type="submit" class="btn-delete">ลบ</button>
                     </form>
-                  </td>
-                </tr>
-              <?php endwhile; ?>
-            <?php else: ?>
-              <tr><td colspan="6" style="text-align:center; padding: 25px; color:#888;">ไม่พบข้อมูลผู้ใช้งานที่ค้นหา</td></tr>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
+                  <?php else: ?>
+                    <span style="color:#aaa; font-size:12px;">-</span>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+          <?php else: ?>
+            <tr><td colspan="7" style="text-align:center; padding: 25px; color:#888;">ไม่พบข้อมูลผู้ใช้งานที่ค้นหา</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
     </div>
-
   </div>
 
   <!-- ========================================== -->
